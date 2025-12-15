@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add New Note</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#137fec",
+            "background-light": "#f7f7f7",
+            "background-dark": "#101922",
+          },
+          fontFamily: {
+            "display": ["Lexend", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+      background-color: #f7f7f7;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-200">
+<div class="mx-auto flex h-full max-w-sm flex-col bg-background-light font-display" style="height: 100dvh;">
+<header class="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-background-light/80 px-4 py-2 backdrop-blur-sm">
+<button class="text-gray-500">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+<h1 class="text-base font-semibold text-gray-900">New Note</h1>
+<button class="text-base font-semibold text-primary">Save</button>
+</header>
+<main class="flex flex-1 flex-col overflow-hidden">
+<div class="shrink-0 px-4 pt-4 text-center">
+<p class="text-xs font-normal leading-normal text-gray-400">June 24, 2024, 10:30 AM</p>
+</div>
+<div class="relative flex-1 flex-col px-4 pt-4">
+<textarea class="h-full w-full resize-none border-none bg-transparent p-0 pb-12 text-base font-normal leading-relaxed text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0" placeholder="Start writing your note..."></textarea>
+<div class="absolute bottom-3 right-4 flex items-center gap-2">
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-600">
+<span class="material-symbols-outlined text-2xl">image</span>
+</button>
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-600">
+<span class="material-symbols-outlined text-2xl">mic</span>
+</button>
+</div>
+</div>
+</main>
+<footer class="sticky bottom-0 z-10 mt-auto flex shrink-0 flex-col gap-3 border-t border-gray-200 bg-background-light px-4 py-3">
+<div class="relative flex-1">
+<span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-gray-400">link</span>
+<input class="w-full rounded-lg border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 placeholder-gray-500 focus:border-primary focus:ring-primary" placeholder="Source (URL, book, podcast...)" type="text"/>
+</div>
+<button class="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-left">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-xl text-gray-500">category</span>
+<span class="text-sm text-gray-800">Category</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-sm text-gray-500">Book</span>
+<span class="material-symbols-outlined text-lg text-gray-400">arrow_forward_ios</span>
+</div>
+</button>
+<button class="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-left">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-xl text-gray-500">sell</span>
+<span class="text-sm text-gray-800">Tags</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-sm text-gray-500">Add Tags</span>
+<span class="material-symbols-outlined text-lg text-gray-400">arrow_forward_ios</span>
+</div>
+</button>
+</footer>
+</div>
+
+</body></html>

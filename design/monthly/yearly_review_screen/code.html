@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Monthly Review Screen - Corrected Layout</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#4F46E5", // Indigo-600
+                    "primary-subtle": "#EEF2FF", // Indigo-50
+                    "primary-text": "#3730A3", // Indigo-800
+                    "background": "#F9FAFB", // Gray-50
+                    "subtle": "#F3F4F6", // Gray-100
+                    "stroke": "#E5E7EB", // Gray-200
+                    "text-primary": "#1F2937", // Gray-800
+                    "text-secondary": "#6B7280", // Gray-500
+                    "text-tertiary": "#9CA3AF", // Gray-400
+                },
+                fontFamily: {
+                    "display": ["Lexend", "sans-serif"]
+                },
+                borderRadius: {
+                    "DEFAULT": "0.5rem",
+                    "lg": "0.75rem",
+                    "xl": "1rem",
+                    "full": "9999px"
+                },
+            },
+        },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        background-color: #F9FAFB;
+    }
+  </style>
+<style>
+    body {
+        min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-display text-text-primary">
+<div class="relative flex h-[100dvh] w-full flex-col">
+<div class="sticky top-0 z-10 bg-background/80 px-4 py-3 backdrop-blur-sm">
+<div class="flex items-center">
+<div class="flex size-10 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-2xl text-text-primary">arrow_back_ios_new</span>
+</div>
+<h1 class="flex-1 text-center text-lg font-semibold tracking-tight text-text-primary">Monthly Review</h1>
+<div class="flex w-10 shrink-0 items-center justify-end">
+</div>
+</div>
+<div class="mt-4">
+<div class="mb-1.5 flex items-center justify-between text-xs">
+<span class="font-medium text-text-secondary">Progress</span>
+<span class="font-medium text-text-secondary">
+<span class="font-semibold text-text-primary">5</span> of 20
+            </span>
+</div>
+<div class="w-full overflow-hidden rounded-full bg-stroke">
+<div class="h-1 bg-primary" style="width: 25%;"></div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-6 py-6">
+<div class="flex flex-col gap-5">
+<h2 class="text-2xl font-semibold leading-snug tracking-tight text-text-primary">The Core Idea of Minimum Viable Product</h2>
+<p class="text-base leading-relaxed text-text-secondary">A Minimum Viable Product (MVP) is that version of a new product which allows a team to collect the maximum amount of validated learning about customers with the least effort. This approach helps in testing a product hypothesis with minimal resources.</p>
+</div>
+</div>
+<div class="sticky bottom-0 mt-auto bg-background/80 px-4 pb-6 pt-4 backdrop-blur-sm">
+<div class="grid grid-cols-2 gap-3">
+<button class="flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full bg-subtle text-base font-semibold text-text-primary hover:bg-stroke">
+<span>Archive</span>
+</button>
+<button class="flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full bg-primary text-base font-semibold text-white hover:opacity-90">
+<span>Keep</span>
+</button>
+</div>
+<div class="flex items-center justify-between pt-3">
+<button class="flex h-10 w-32 items-center justify-center gap-1 rounded-full text-base font-medium text-text-secondary hover:bg-subtle">
+<span class="material-symbols-outlined text-xl">chevron_left</span>
+<span>Previous</span>
+</button>
+<button class="flex h-10 w-32 items-center justify-center gap-1 rounded-full text-base font-medium text-text-primary hover:bg-subtle">
+<span>Next</span>
+<span class="material-symbols-outlined text-xl">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>

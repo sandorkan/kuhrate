@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Note Details Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0A84FF",
+                        "background": "#F9F9F9",
+                        "background-secondary": "#FFFFFF",
+                        "text-primary": "#1C1C1E",
+                        "text-secondary": "#8A8A8E",
+                        "ui-element": "#E5E5EA",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: 100dvh;
+            font-family: 'Inter', sans-serif;
+            background-color: #F9F9F9;}
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-text-primary">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="flex items-center bg-background/80 backdrop-blur-lg p-4 pb-2 justify-between sticky top-0 z-10 border-b border-ui-element/50">
+<div class="flex size-10 shrink-0 items-center justify-start">
+<button class="flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'wght' 500;">arrow_back_ios_new</span>
+</button>
+</div>
+<div class="flex flex-1 items-center justify-center gap-2 text-text-secondary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'wght' 300;">menu_book</span>
+<span class="text-sm font-medium">Nov 15, 2023</span>
+</div>
+<div class="flex size-10 items-center justify-end">
+<button class="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-ui-element/60 text-text-primary">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'wght' 500;">share</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col px-5 pt-6 pb-32">
+<h1 class="text-text-primary tracking-tight text-3xl font-bold leading-tight pb-6">Key takeaways from Chapter 3</h1>
+<div class="space-y-5 text-text-primary text-[17px] font-normal leading-relaxed">
+<p>This screen is designed for viewing a single note in its entirety, including its content, source, and date. It should have a clean and readable layout, allowing the user to focus on the note content.</p>
+<ul class="list-disc space-y-2.5 pl-5 text-text-primary/90">
+<li>Bullet points and other basic markdown should be supported for clarity and organization.</li>
+<li>Readability is key, so ample spacing and a clear font are essential.</li>
+<li>Interaction should be focused and non-intrusive, primarily through a bottom action bar.</li>
+</ul>
+<p>The goal is to create a calm, focused reading environment. By keeping the UI minimal, the user's attention remains on their captured thoughts and insights from various media they consume.</p>
+</div>
+<div class="mt-8 rounded-xl border border-ui-element bg-background-secondary p-4">
+<p class="text-sm font-medium text-text-secondary">Source</p>
+<p class="text-lg font-semibold text-text-primary">Sapiens</p>
+</div>
+<div class="flex flex-wrap items-center gap-2 pt-8">
+<span class="inline-block rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">#productivity</span>
+<span class="inline-block rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">#history</span>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg">
+<div class="flex h-20 items-center justify-around px-4 pt-1 pb-4">
+<button class="flex flex-col items-center justify-center gap-1 text-primary">
+<span class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'wght' 500;">edit</span>
+</span>
+<span class="text-xs font-medium text-text-secondary">Edit</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 text-primary">
+<span class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'wght' 500;">label</span>
+</span>
+<span class="text-xs font-medium text-text-secondary">Tags</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 text-red-500">
+<span class="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'wght' 500;">delete</span>
+</span>
+<span class="text-xs font-medium text-text-secondary">Delete</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>
