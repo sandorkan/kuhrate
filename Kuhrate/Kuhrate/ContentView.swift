@@ -6,81 +6,93 @@
 //
 
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
+    // MARK: - State
+    // @State holds our notes array in memory
+    // When notes changes, SwiftUI automatically updates the UI
+    @State private var notes: [Note] = [
+        // Sample notes so we have something to display
+        Note(content: "Welcome to Kuhrate! This is your first note.", createdDate: Date()),
+        Note(content: "Tap the + button to add a new note", createdDate: Date().addingTimeInterval(-3600)), // 1 hour ago
+        Note(content: "Swipe left on a note to delete it", createdDate: Date().addingTimeInterval(-7200))  // 2 hours ago
+    ]
 
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+    // Controls whether the Add Note sheet is visible
+    @State private var showingAddNote = false
 
+    // MARK: - Body
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
-                ForEach(items) { item in
+                ForEach(notes) { note in
                     NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
+                        // Destination: Note detail view (simple for now)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(note.content)
+                                .font(.body)
+                            Text(note.createdDate, formatter: dateFormatter)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .navigationTitle("Note Detail")
                     } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+                        // What shows in the list
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(note.content)
+                                .font(.body)
+                                .lineLimit(2) // Show max 2 lines
+                            Text(note.createdDate, formatter: dateFormatter)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: deleteNotes)
             }
+            .navigationTitle("My Notes")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     EditButton()
                 }
                 ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                    Button(action: addNote) {
+                        Label("Add Note", systemImage: "plus")
                     }
                 }
             }
-            Text("Select an item")
+        }
+        .sheet(isPresented: $showingAddNote) {
+            AddNoteView(notes: $notes)
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+    // MARK: - Functions
 
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
+    // Shows the Add Note sheet
+    private func addNote() {
+        showingAddNote = true
     }
 
-    private func deleteItems(offsets: IndexSet) {
+    // Delete notes at specific indices
+    private func deleteNotes(offsets: IndexSet) {
         withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            notes.remove(atOffsets: offsets)
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
+// MARK: - Date Formatter
+// Formats dates like "12/15/25, 10:30 AM"
+private let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateStyle = .short
-    formatter.timeStyle = .medium
+    formatter.timeStyle = .short
     return formatter
 }()
 
+// MARK: - Preview
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView()
 }
