@@ -31,11 +31,24 @@ struct AddNoteView: View {
                     .foregroundColor(.gray)
                     .padding(.top, 8)
 
-                // Text editor for note content
-                TextEditor(text: $noteText)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .font(.body)
+                // Text editor for note content with placeholder
+                ZStack(alignment: .topLeading) {
+                    // TextEditor
+                    TextEditor(text: $noteText)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .font(.body)
+
+                    // Placeholder text (only shows when noteText is empty)
+                    if noteText.isEmpty {
+                        Text("Start writing your note...")
+                            .foregroundColor(Color(uiColor: .placeholderText))
+                            .font(.body)
+                            .padding(.horizontal, 20)  // Matches TextEditor's text position
+                            .padding(.vertical, 20)
+                            .allowsHitTesting(false)  // Let taps pass through to TextEditor
+                    }
+                }
 
                 Spacer()
             }
