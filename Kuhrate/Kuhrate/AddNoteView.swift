@@ -6,16 +6,14 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct AddNoteView: View {
     // MARK: - Environment
     // dismiss is provided by SwiftUI to close the sheet
     @Environment(\.dismiss) var dismiss
-
-    // MARK: - Bindings
-    // This is a binding to the notes array in ContentView
-    // When we add a note here, ContentView's array updates automatically
-    @Binding var notes: [Note]
+    // CoreData managed object context for saving
+    @Environment(\.managedObjectContext) private var viewContext
 
     // MARK: - State
     // Local state for the text being typed
@@ -77,19 +75,21 @@ struct AddNoteView: View {
     // MARK: - Functions
 
     private func saveNote() {
-        // Create new note with the text
-        let newNote = Note(
-            content: noteText.trimmingCharacters(in: .whitespacesAndNewlines),
-            createdDate: Date()
-        )
+        // Create new NoteEntity in CoreData
+        let newNote = NoteEntity(context: viewContext)
+        newNote.id = UUID()
+        newNote.content = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
+        newNote.createdDate = Date()
 
-        // Add to the beginning of the array (newest first)
-        withAnimation {
-            notes.insert(newNote, at: 0)
+        // Save to CoreData
+        do {
+            try viewContext.save()
+            // Close the sheet
+            dismiss()
+        } catch {
+            let nsError = error as NSError
+            print("Error saving note: \(nsError), \(nsError.userInfo)")
         }
-
-        // Close the sheet
-        dismiss()
     }
 }
 
@@ -104,15 +104,6 @@ private let timestampFormatter: DateFormatter = {
 
 // MARK: - Preview
 #Preview {
-    // For preview, we need to provide a binding
-    // @State creates a temporary notes array for preview
-    struct PreviewWrapper: View {
-        @State private var notes: [Note] = []
-
-        var body: some View {
-            AddNoteView(notes: $notes)
-        }
-    }
-
-    return PreviewWrapper()
+    AddNoteView()
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }

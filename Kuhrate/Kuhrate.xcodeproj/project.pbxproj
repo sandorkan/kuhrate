@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F02031C22EF490C900C2B730 /* NoteEntity+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02031C12EF490C900C2B730 /* NoteEntity+Extensions.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		F02031C12EF490C900C2B730 /* NoteEntity+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NoteEntity+Extensions.swift"; sourceTree = "<group>"; };
 		F0F386F72EEF584E0071077B /* Kuhrate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kuhrate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -34,6 +39,7 @@
 			children = (
 				F0F386F92EEF584E0071077B /* Kuhrate */,
 				F0F386F82EEF584E0071077B /* Products */,
+				F02031C12EF490C900C2B730 /* NoteEntity+Extensions.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -119,6 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F02031C22EF490C900C2B730 /* NoteEntity+Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

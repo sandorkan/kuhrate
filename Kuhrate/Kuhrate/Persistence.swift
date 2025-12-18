@@ -14,15 +14,18 @@ struct PersistenceController {
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+
+        // Create sample notes for preview
+        for i in 0..<3 {
+            let newNote = NoteEntity(context: viewContext)
+            newNote.id = UUID()
+            newNote.content = "Sample note \(i + 1)"
+            newNote.createdDate = Date().addingTimeInterval(TimeInterval(-i * 3600))
         }
+
         do {
             try viewContext.save()
         } catch {
-            // Replace this implementation with code to handle the error appropriately.
-            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
             let nsError = error as NSError
             fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }

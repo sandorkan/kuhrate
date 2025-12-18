@@ -6,18 +6,22 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct ContentView: View {
-    // MARK: - State
-    // @State holds our notes array in memory
-    // When notes changes, SwiftUI automatically updates the UI
-    @State private var notes: [Note] = [
-        // Sample notes so we have something to display
-        Note(content: "Welcome to Kuhrate! This is your first note.", createdDate: Date()),
-        Note(content: "Tap the + button to add a new note", createdDate: Date().addingTimeInterval(-3600)), // 1 hour ago
-        Note(content: "Swipe left on a note to delete it", createdDate: Date().addingTimeInterval(-7200))  // 2 hours ago
-    ]
+    // MARK: - Environment
+    // CoreData managed object context for saving/deleting
+    @Environment(\.managedObjectContext) private var viewContext
 
+    // MARK: - Fetch Request
+    // @FetchRequest automatically fetches NoteEntity objects from CoreData
+    // Sorted by createdDate (newest first)
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \NoteEntity.createdDate, ascending: false)],
+        animation: .default)
+    private var notes: FetchedResults<NoteEntity>
+
+    // MARK: - State
     // Controls whether the Add Note sheet is visible
     @State private var showingAddNote = false
 
@@ -29,9 +33,9 @@ struct ContentView: View {
                     NavigationLink {
                         // Destination: Note detail view (simple for now)
                         VStack(alignment: .leading, spacing: 12) {
-                            Text(note.content)
+                            Text(note.contentText)
                                 .font(.body)
-                            Text(note.createdDate, formatter: dateFormatter)
+                            Text(note.createdDateSafe, formatter: dateFormatter)
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -40,10 +44,10 @@ struct ContentView: View {
                     } label: {
                         // What shows in the list
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(note.content)
+                            Text(note.contentText)
                                 .font(.body)
                                 .lineLimit(2) // Show max 2 lines
-                            Text(note.createdDate, formatter: dateFormatter)
+                            Text(note.createdDateSafe, formatter: dateFormatter)
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -64,7 +68,8 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showingAddNote) {
-            AddNoteView(notes: $notes)
+            AddNoteView()
+                .environment(\.managedObjectContext, viewContext)
         }
     }
 
@@ -75,10 +80,22 @@ struct ContentView: View {
         showingAddNote = true
     }
 
-    // Delete notes at specific indices
+    // Delete notes from CoreData
     private func deleteNotes(offsets: IndexSet) {
         withAnimation {
-            notes.remove(atOffsets: offsets)
+            // Marks the notes in the offsets for deletion
+            // short-version of code: offsets.map { notes[$0] }.forEach(viewContext.delete)
+            for index in offsets {
+                 let note = notes[index]
+                 viewContext.delete(note)
+             }
+
+            do {
+                try viewContext.save()
+            } catch {
+                let nsError = error as NSError
+                print("Error deleting note: \(nsError), \(nsError.userInfo)")
+            }
         }
     }
 }
@@ -95,4 +112,5 @@ private let dateFormatter: DateFormatter = {
 // MARK: - Preview
 #Preview {
     ContentView()
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }
