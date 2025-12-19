@@ -33,9 +33,9 @@ struct ContentView: View {
                     NavigationLink {
                         // Destination: Note detail view (simple for now)
                         VStack(alignment: .leading, spacing: 12) {
-                            Text(note.contentText)
+                            Text(note.content ?? "")
                                 .font(.body)
-                            Text(note.createdDateSafe, formatter: dateFormatter)
+                            Text(note.createdDate ?? Date(), formatter: dateFormatter)
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -44,10 +44,10 @@ struct ContentView: View {
                     } label: {
                         // What shows in the list
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(note.contentText)
+                            Text(note.content ?? "")
                                 .font(.body)
                                 .lineLimit(2) // Show max 2 lines
-                            Text(note.createdDateSafe, formatter: dateFormatter)
+                            Text(note.createdDate ?? Date(), formatter: dateFormatter)
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -60,7 +60,7 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     EditButton()
                 }
-                ToolbarItem {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(action: addNote) {
                         Label("Add Note", systemImage: "plus")
                     }

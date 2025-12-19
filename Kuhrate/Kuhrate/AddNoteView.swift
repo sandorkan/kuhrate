@@ -75,10 +75,18 @@ struct AddNoteView: View {
     // MARK: - Functions
 
     private func saveNote() {
+        // Trim whitespace from note text
+        let trimmedContent = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Don't save if content is empty
+        guard !trimmedContent.isEmpty else {
+            return
+        }
+
         // Create new NoteEntity in CoreData
         let newNote = NoteEntity(context: viewContext)
         newNote.id = UUID()
-        newNote.content = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
+        newNote.content = trimmedContent
         newNote.createdDate = Date()
 
         // Save to CoreData

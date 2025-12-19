@@ -6,12 +6,7 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		F02031C22EF490C900C2B730 /* NoteEntity+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02031C12EF490C900C2B730 /* NoteEntity+Extensions.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
-		F02031C12EF490C900C2B730 /* NoteEntity+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NoteEntity+Extensions.swift"; sourceTree = "<group>"; };
 		F0F386F72EEF584E0071077B /* Kuhrate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kuhrate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -39,7 +34,6 @@
 			children = (
 				F0F386F92EEF584E0071077B /* Kuhrate */,
 				F0F386F82EEF584E0071077B /* Products */,
-				F02031C12EF490C900C2B730 /* NoteEntity+Extensions.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -84,7 +78,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					F0F386F62EEF584E0071077B = {
 						CreatedOnToolsVersion = 26.1.1;
@@ -125,7 +119,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F02031C22EF490C900C2B730 /* NoteEntity+Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -190,6 +183,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -246,6 +240,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
