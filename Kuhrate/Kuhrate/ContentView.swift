@@ -31,8 +31,8 @@ struct ContentView: View {
             List {
                 ForEach(notes) { note in
                     NavigationLink {
-                        // Destination: Full note detail view with editing
-                        NoteDetailView(note: note)
+                        // Destination: Edit existing note
+                        NoteEditorView(note: note)
                     } label: {
                         // What shows in the list
                         HStack(spacing: 0) {
@@ -70,8 +70,10 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showingAddNote) {
-            AddNoteView()
-                .environment(\.managedObjectContext, viewContext)
+            NavigationStack {
+                NoteEditorView()
+                    .environment(\.managedObjectContext, viewContext)
+            }
         }
     }
 

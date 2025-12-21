@@ -1,5 +1,5 @@
 //
-//  NoteDetailView.swift
+//  NoteEditorView.swift
 //  Kuhrate
 //
 //  Created by Sandro Brunner on 21.12.2025.
@@ -8,14 +8,14 @@
 import SwiftUI
 import CoreData
 
-struct NoteDetailView: View {
+struct NoteEditorView: View {
     // MARK: - Environment
     @Environment(\.dismiss) var dismiss
     @Environment(\.managedObjectContext) private var viewContext
 
     // MARK: - Input
-    // The note being viewed/edited
-    let note: NoteEntity
+    // The note being edited (nil = creating new note)
+    let note: NoteEntity?
 
     // MARK: - State
     // Working copies (editable)
@@ -29,27 +29,39 @@ struct NoteDetailView: View {
 
     // MARK: - Computed Properties
 
+    // Is this creating a new note or editing existing?
+    private var isCreating: Bool {
+        note == nil
+    }
+
     // Has user made any changes?
     private var hasChanges: Bool {
-        let contentChanged = editedContent.trimmingCharacters(in: .whitespacesAndNewlines) != (note.content ?? "")
-        let categoryChanged = editedCategory?.id != note.category?.id
-        return contentChanged || categoryChanged
+        if isCreating {
+            // For new notes, check if user has typed anything
+            return !editedContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        } else {
+            // For existing notes, compare with original
+            let contentChanged = editedContent.trimmingCharacters(in: .whitespacesAndNewlines) != (note?.content ?? "")
+            let categoryChanged = editedCategory?.id != note?.category?.id
+            return contentChanged || categoryChanged
+        }
     }
 
     // MARK: - Initializer
 
-    init(note: NoteEntity) {
+    init(note: NoteEntity? = nil) {
         self.note = note
-        // Initialize @State with note's current values
-        _editedContent = State(initialValue: note.content ?? "")
-        _editedCategory = State(initialValue: note.category)
+        // Initialize @State with note's current values (or empty for new note)
+        _editedContent = State(initialValue: note?.content ?? "")
+        _editedCategory = State(initialValue: note?.category)
     }
 
     // MARK: - Body
+
     var body: some View {
         VStack(spacing: 0) {
             // Timestamp display
-            Text(note.createdDate ?? Date(), formatter: timestampFormatter)
+            Text(note?.createdDate ?? Date(), formatter: timestampFormatter)
                 .font(.caption)
                 .foregroundColor(.gray)
                 .padding(.top, 8)
@@ -81,7 +93,7 @@ struct NoteDetailView: View {
                 } label: {
                     HStack {
                         Image(systemName: "folder.fill")
-                            .foregroundColor(.gray)
+                            .foregroundColor(editedCategory?.color != nil ? Color(hex: editedCategory!.color!) : .gray)
                         Text("Category")
                             .foregroundColor(.primary)
                         Spacer()
@@ -99,44 +111,66 @@ struct NoteDetailView: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
-        .navigationTitle("Note Detail")
+        .navigationTitle(isCreating ? "New Note" : "Note Detail")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)  // Always hide default back button
+        .navigationBarBackButtonHidden(!isCreating)  // Hide back button only when editing
         .toolbar {
-            // Custom back button (always visible, intercepts when there are changes)
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    if hasChanges {
-                        showingDiscardAlert = true
-                    } else {
+            if isCreating {
+                // Creating mode: Back chevron and conditional Save checkmark
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.body.weight(.semibold))
+                            .foregroundColor(.blue)
                     }
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.body.weight(.semibold))
-                        .foregroundColor(.blue)
                 }
-            }
 
-
-            // Delete button (always visible)
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingDeleteConfirmation = true
-                } label: {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
+                // Only show save checkmark if user has typed content
+                if hasChanges {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            saveNote()
+                        } label: {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
                 }
-            }
+            } else {
+                // Editing mode: Custom back, delete, and conditional save
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        if hasChanges {
+                            showingDiscardAlert = true
+                        } else {
+                            dismiss()
+                        }
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.body.weight(.semibold))
+                            .foregroundColor(.blue)
+                    }
+                }
 
-            // Save button (only visible when there are changes)
-            if hasChanges {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        saveChanges()
+                        showingDeleteConfirmation = true
                     } label: {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.blue)
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                }
+
+                if hasChanges {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            saveNote()
+                        } label: {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
             }
@@ -165,7 +199,7 @@ struct NoteDetailView: View {
 
     // MARK: - Functions
 
-    private func saveChanges() {
+    private func saveNote() {
         let trimmedContent = editedContent.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Don't save if content is empty
@@ -173,9 +207,18 @@ struct NoteDetailView: View {
             return
         }
 
-        // Update the note
-        note.content = trimmedContent
-        note.category = editedCategory
+        if isCreating {
+            // Create new note
+            let newNote = NoteEntity(context: viewContext)
+            newNote.id = UUID()
+            newNote.content = trimmedContent
+            newNote.createdDate = Date()
+            newNote.category = editedCategory
+        } else {
+            // Update existing note
+            note?.content = trimmedContent
+            note?.category = editedCategory
+        }
 
         // Save to CoreData
         do {
@@ -188,6 +231,7 @@ struct NoteDetailView: View {
     }
 
     private func deleteNote() {
+        guard let note = note else { return }
         viewContext.delete(note)
 
         do {
@@ -209,15 +253,22 @@ private let timestampFormatter: DateFormatter = {
 }()
 
 // MARK: - Preview
-#Preview {
+#Preview("Create New Note") {
+    NavigationStack {
+        NoteEditorView()
+            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    }
+}
+
+#Preview("Edit Existing Note") {
     let context = PersistenceController.preview.container.viewContext
     let note = NoteEntity(context: context)
     note.id = UUID()
-    note.content = "Sample note for preview"
+    note.content = "Sample note for editing"
     note.createdDate = Date()
 
     return NavigationStack {
-        NoteDetailView(note: note)
+        NoteEditorView(note: note)
             .environment(\.managedObjectContext, context)
     }
 }
