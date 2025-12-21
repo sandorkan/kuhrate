@@ -31,16 +31,8 @@ struct ContentView: View {
             List {
                 ForEach(notes) { note in
                     NavigationLink {
-                        // Destination: Note detail view (simple for now)
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(note.content ?? "")
-                                .font(.body)
-                            Text(note.createdDate ?? Date(), formatter: dateFormatter)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .padding()
-                        .navigationTitle("Note Detail")
+                        // Destination: Full note detail view with editing
+                        NoteDetailView(note: note)
                     } label: {
                         // What shows in the list
                         HStack(spacing: 0) {
