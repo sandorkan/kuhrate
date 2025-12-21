@@ -1,16 +1,20 @@
 # Kuhrate - Spaced Repetition Note App
 
 ## Project Overview
+
 A native iOS app for taking notes and reviewing them through a custom spaced repetition system. Users capture insights from books, podcasts, videos, and other sources, then progressively curate what matters most through weekly, monthly, and yearly reviews.
 
 ## Tech Stack
+
 - **Platform**: Native iOS (SwiftUI)
 - **Data Storage**: CoreData (local-first)
 - **Minimum iOS Version**: iOS 16+
 - **Language**: Swift
 
 ## Core Concept
+
 Unlike traditional spaced repetition (like Anki), Kuhrate uses a **curation-based review cycle**:
+
 1. Users take notes freely (daily/whenever) - all notes live in "Daily"
 2. Weekly review: Curate daily notes from past week → keep important ones
 3. Monthly review: Review notes kept in weekly reviews → keep important ones
@@ -18,6 +22,7 @@ Unlike traditional spaced repetition (like Anki), Kuhrate uses a **curation-base
 5. Notes get "promoted" to higher cycles but always remain visible in Daily
 
 **Mental Model**: Notes don't "move" between cycles - they get promoted to additional visibility layers.
+
 - All notes always exist in Daily (chronological creation view)
 - Weekly tab shows: notes that were kept during weekly reviews
 - Monthly tab shows: notes that were kept during monthly reviews
@@ -26,6 +31,7 @@ Unlike traditional spaced repetition (like Anki), Kuhrate uses a **curation-base
 ## Data Model
 
 ### Note Entity
+
 ```swift
 - id: UUID
 - content: String (markdown supported, first line used as display title)
@@ -38,6 +44,7 @@ Unlike traditional spaced repetition (like Anki), Kuhrate uses a **curation-base
 ```
 
 ### Category Entity
+
 ```swift
 - id: UUID
 - name: String (e.g., "Productivity", "Health")
@@ -48,6 +55,7 @@ Unlike traditional spaced repetition (like Anki), Kuhrate uses a **curation-base
 ```
 
 **Predefined Categories** (seeded on first app launch):
+
 ```swift
 1. Productivity → #137fec (blue)
 2. Relationships → #ec4899 (pink)
@@ -61,13 +69,15 @@ Unlike traditional spaced repetition (like Anki), Kuhrate uses a **curation-base
 ```
 
 **Category Rules:**
-- Predefined categories cannot be edited or deleted
+
+- Predefined can be edited or deleted
 - Users can create custom categories (with custom name + color)
 - Users can delete their custom categories
 - If a custom category is deleted, associated notes become uncategorized (category = nil)
-- In UI: show predefined categories first (by sortOrder), then custom categories alphabetically
+- In UI: show categories alphabetically
 
 **Note Lifecycle Example:**
+
 ```
 Day 1: Create Note A → reviewCycle = .daily (shows in Daily tab)
 Week 1 Review: Keep Note A → reviewCycle = .weekly (shows in Daily + Weekly tabs)
@@ -76,12 +86,14 @@ Year 1 Review: Keep Note A → reviewCycle = .yearly (shows in all tabs - evergr
 ```
 
 **Tab Filtering Logic:**
+
 - **Daily tab**: All notes (sorted by createdDate)
 - **Weekly tab**: Notes where `reviewCycle >= .weekly`
 - **Monthly tab**: Notes where `reviewCycle >= .monthly`
 - **Yearly tab**: Notes where `reviewCycle == .yearly`
 
 ### ReviewCycle Enum
+
 ```swift
 enum ReviewCycle: Int, Comparable {
     case daily = 0
@@ -94,6 +106,7 @@ enum ReviewCycle: Int, Comparable {
 ```
 
 ### ReviewSession Entity
+
 ```swift
 - id: UUID
 - type: ReviewType (enum: weekly, monthly, yearly)
@@ -108,6 +121,7 @@ enum ReviewCycle: Int, Comparable {
 ```
 
 ### ReviewAction Entity
+
 ```swift
 - id: UUID
 - sessionID: UUID (which ReviewSession this action belongs to)
@@ -117,11 +131,13 @@ enum ReviewCycle: Int, Comparable {
 ```
 
 **Purpose**: Track individual decisions during reviews. Allows answering:
+
 - "Which notes were kept during Week 48's review?"
 - "When was this note last promoted?"
 - Show review history for each note
 
 ### ReviewType Enum
+
 ```swift
 enum ReviewType: String {
     case weekly
@@ -131,6 +147,7 @@ enum ReviewType: String {
 ```
 
 ### ReviewStatus Enum
+
 ```swift
 enum ReviewStatus: String {
     case notStarted
@@ -140,6 +157,7 @@ enum ReviewStatus: String {
 ```
 
 ### ActionType Enum
+
 ```swift
 enum ActionType: String {
     case kept    // Note was promoted to next cycle
@@ -147,10 +165,10 @@ enum ActionType: String {
 }
 ```
 
-
 ## Screens (from designs)
 
 ### 1. Home Screen (`home/daily-reviews-screen`)
+
 - User avatar + settings button
 - Review card showing "X Notes to Review Today"
 - Filter tabs: All Notes, Weekly, Monthly, Yearly
@@ -161,6 +179,7 @@ enum ActionType: String {
 - Bottom: Search bar with voice input + FAB to add note
 
 ### 2. Weekly Review Screen (`home/weekly-reviews-screen`)
+
 - Same header as home
 - Review card showing "X Notes to Review This Week"
 - Filter tabs (Weekly highlighted)
@@ -172,6 +191,7 @@ enum ActionType: String {
 - Collapsible monthly sections
 
 ### 3. Monthly/Yearly Review Screen (`monthly/yearly_review_screen`)
+
 - Full-screen flashcard style
 - Progress indicator (5 of 20)
 - Note title (first line of content) + full content
@@ -179,6 +199,7 @@ enum ActionType: String {
 - Previous / Next navigation
 
 ### 4. Add Note Screen (`add_new_note_screen`)
+
 - Modal presentation
 - Header: Close (X) | "New Note" | Save (blue)
 - Timestamp display
@@ -190,11 +211,12 @@ enum ActionType: String {
   - Tags selector (with icon, shows "Add Tags") - unlimited tags
 
 ### 5. Note Details Screen (`note_details_screen`)
+
 - Back button | Source icon + date | Share button
 - Note title (first line of content, large, bold)
 - Note content (full markdown content, readable spacing)
 - Category badge (colored pill with category name)
-- Source card (rounded box, if source exists)
+- Source card (rousnded box, if source exists)
 - Tags (colored pills, if tags exist)
 - Bottom action bar:
   - Edit (blue)
@@ -203,10 +225,12 @@ enum ActionType: String {
 ## Review Logic Algorithm
 
 ### Weekly Review Trigger
+
 **When**: Once per week (configurable day, default: Sunday)
 **What to review**: All notes where `reviewCycle == .daily` AND `createdDate` is within the past 7 days
 
 **Review Flow**:
+
 1. Create ReviewSession (type: weekly, periodIdentifier: "2024-W48", status: inProgress)
 2. User swipes through notes in flashcard UI
 3. For each note:
@@ -217,15 +241,18 @@ enum ActionType: String {
 **Important**: Notes from Week 1 only appear in Week 1's review. If user skips Week 1 review and tries to start Monthly review, they'll be warned. If confirmed, all unreviewed notes stay at `.daily` (not promoted).
 
 ### Monthly Review Trigger
+
 **When**: Once per month (configurable date, default: 1st of month)
 **What to review**: All notes where `reviewCycle == .weekly` AND were promoted to weekly during this month
 
 **How to determine "promoted this month"**:
+
 - Query ReviewActions where `action == .kept` AND `sessionType == .weekly`
 - Filter notes where the ReviewAction's session belongs to this month
 - OR: Use note's `createdDate` month + check if `reviewCycle >= .weekly`
 
 **Review Flow**:
+
 1. Create ReviewSession (type: monthly, periodIdentifier: "2024-11")
 2. User reviews notes:
    - **Keep** → `reviewCycle = .monthly`
@@ -233,10 +260,12 @@ enum ActionType: String {
 3. Complete session
 
 ### Yearly Review Trigger
+
 **When**: Once per year (configurable date, default: Jan 1)
 **What to review**: All notes where `reviewCycle == .monthly` AND were promoted to monthly during this year
 
 **Review Flow**:
+
 1. Create ReviewSession (type: yearly, periodIdentifier: "2024")
 2. User reviews notes:
    - **Keep** → `reviewCycle = .yearly` (becomes evergreen insight)
@@ -246,6 +275,7 @@ enum ActionType: String {
 **Yearly notes**: Once promoted to `.yearly`, notes remain there indefinitely as curated evergreen insights. User can manually delete if desired.
 
 ### Review Session Flow (Detailed)
+
 ```
 1. User clicks "Start Review" for a period (Week 48, November 2024, etc.)
 
@@ -278,6 +308,7 @@ enum ActionType: String {
 ```
 
 ### Note Deletion vs Skipping
+
 - **Skip during review**: Note stays in current cycle, can be reviewed again in next period's review
 - **Manual delete**: User can delete any note from Note Detail screen (permanent deletion)
 - There is no "archive" status - skipped notes just don't get promoted
@@ -285,6 +316,7 @@ enum ActionType: String {
 ## Design System
 
 ### Colors
+
 ```swift
 Primary: #137fec (blue)
 Background Light: #ffffff / #f7f7f7
@@ -295,6 +327,7 @@ Destructive: Red (for delete)
 ```
 
 ### Typography
+
 - Font: Inter (or SF Pro as native alternative)
 - Title: 32-34pt, Bold
 - Section Headers: 12pt, Medium, Uppercase, Gray
@@ -303,6 +336,7 @@ Destructive: Red (for delete)
 - Body Text: 17pt, Regular (for reading)
 
 ### Components
+
 - Rounded cards with subtle borders
 - Pill-shaped filter tabs
 - Material Icons (outlined style)
@@ -312,6 +346,7 @@ Destructive: Red (for delete)
 ## MVP Features (Phase 1)
 
 ### Must Have
+
 - [x] All 5 core screens
 - [ ] Create/Edit/Delete notes
 - [ ] Local CoreData storage
@@ -322,6 +357,7 @@ Destructive: Red (for delete)
 - [ ] Markdown support in notes (bold, italic, lists)
 
 ### Nice to Have (Phase 2)
+
 - [ ] iCloud sync via CloudKit
 - [ ] Voice input for notes (iOS Speech framework)
 - [ ] Image attachments
@@ -332,6 +368,7 @@ Destructive: Red (for delete)
 - [ ] Statistics/insights dashboard
 
 ## Project Structure
+
 ```
 Kuhrate/
 ├── App/
@@ -375,6 +412,7 @@ Kuhrate/
 ```
 
 ## Next Steps
+
 1. Run `claude init` to set up project context
 2. Create Xcode project with SwiftUI template
 3. Set up CoreData model

@@ -18,6 +18,10 @@ struct AddNoteView: View {
     // MARK: - State
     // Local state for the text being typed
     @State private var noteText: String = ""
+    // Selected category (optional)
+    @State private var selectedCategory: CategoryEntity?
+    // Controls whether the category picker sheet is visible
+    @State private var showingCategoryPicker = false
 
     // MARK: - Body
     var body: some View {
@@ -49,6 +53,31 @@ struct AddNoteView: View {
                 }
 
                 Spacer()
+
+                // Category selector button (at bottom)
+                VStack(spacing: 12) {
+                    Button {
+                        showingCategoryPicker = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "folder.fill")
+                                .foregroundColor(.gray)
+                            Text("Category")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Text(selectedCategory?.name ?? "")
+                                .foregroundColor(.gray)
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                                .font(.caption)
+                        }
+                        .padding()
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .cornerRadius(10)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom)
             }
             .navigationTitle("New Note")
             .navigationBarTitleDisplayMode(.inline)
@@ -70,6 +99,10 @@ struct AddNoteView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingCategoryPicker) {
+            CategoryPickerView(selectedCategory: $selectedCategory)
+                .environment(\.managedObjectContext, viewContext)
+        }
     }
 
     // MARK: - Functions
@@ -88,6 +121,7 @@ struct AddNoteView: View {
         newNote.id = UUID()
         newNote.content = trimmedContent
         newNote.createdDate = Date()
+        newNote.category = selectedCategory  // Save the selected category
 
         // Save to CoreData
         do {

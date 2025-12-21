@@ -43,13 +43,23 @@ struct ContentView: View {
                         .navigationTitle("Note Detail")
                     } label: {
                         // What shows in the list
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(note.content ?? "")
-                                .font(.body)
-                                .lineLimit(2) // Show max 2 lines
-                            Text(note.createdDate ?? Date(), formatter: dateFormatter)
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                        HStack(spacing: 0) {
+                            // Category color accent bar
+                            if let category = note.category {
+                                Rectangle()
+                                    .fill(Color(hex: category.color ?? "#137fec"))
+                                    .frame(width: 3)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(note.content ?? "")
+                                    .font(.body)
+                                    .lineLimit(2) // Show max 2 lines
+                                Text(note.createdDate ?? Date(), formatter: dateFormatter)
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.leading, note.category != nil ? 12 : 0)
                         }
                     }
                 }
