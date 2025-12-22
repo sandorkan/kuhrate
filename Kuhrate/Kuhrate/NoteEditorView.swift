@@ -5,27 +5,32 @@
 //  Created by Sandro Brunner on 21.12.2025.
 //
 
-import SwiftUI
 import CoreData
+import SwiftUI
 
 struct NoteEditorView: View {
     // MARK: - Environment
+
     @Environment(\.dismiss) var dismiss
     @Environment(\.managedObjectContext) private var viewContext
 
     // MARK: - Input
+
     // The note being edited (nil = creating new note)
     let note: NoteEntity?
 
     // MARK: - State
+
     // Working copies (editable)
     @State private var editedContent: String
     @State private var editedCategory: CategoryEntity?
+    @State private var editedTags: Set<TagEntity> = []
 
     // UI state
     @State private var showingCategoryPicker = false
     @State private var showingDeleteConfirmation = false
     @State private var showingDiscardAlert = false
+    @State private var tagInput: String = ""
 
     // MARK: - Computed Properties
 
@@ -43,7 +48,8 @@ struct NoteEditorView: View {
             // For existing notes, compare with original
             let contentChanged = editedContent.trimmingCharacters(in: .whitespacesAndNewlines) != (note?.content ?? "")
             let categoryChanged = editedCategory?.id != note?.category?.id
-            return contentChanged || categoryChanged
+            let tagsChanged = editedTags != (note?.tags as? Set<TagEntity> ?? [])
+            return contentChanged || categoryChanged || tagsChanged
         }
     }
 
@@ -54,6 +60,7 @@ struct NoteEditorView: View {
         // Initialize @State with note's current values (or empty for new note)
         _editedContent = State(initialValue: note?.content ?? "")
         _editedCategory = State(initialValue: note?.category)
+        _editedTags = State(initialValue: note?.tags as? Set<TagEntity> ?? [])
     }
 
     // MARK: - Body
@@ -86,8 +93,40 @@ struct NoteEditorView: View {
 
             Spacer()
 
-            // Category selector button (at bottom)
+            // Tag input and pills
             VStack(spacing: 12) {
+                // Tag pills (horizontal scrolling)
+                if !editedTags.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(Array(editedTags).sorted(by: { ($0.name ?? "") < ($1.name ?? "") }), id: \.id) { tag in
+                                TagPillView(
+                                    tagName: tag.name ?? "",
+                                    onRemove: {
+                                        removeTag(tag)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+
+                // Tag input field
+                HStack {
+                    Image(systemName: "tag.fill")
+                        .foregroundColor(.gray)
+                    TextField("Add tags (space or comma separated)", text: $tagInput)
+                        .font(.body)
+                        .onSubmit {
+                            addTagsFromInput()
+                        }
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemBackground))
+                .cornerRadius(10)
+
+                // Category selector button
                 Button {
                     showingCategoryPicker = true
                 } label: {
@@ -111,9 +150,18 @@ struct NoteEditorView: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
+        .onAppear {
+            // Ensure state is synchronized with the note when the view appears
+            // This fixes the issue where stale state persists when re-opening a note
+            if let note = note {
+                editedContent = note.content ?? ""
+                editedCategory = note.category
+                editedTags = note.tags as? Set<TagEntity> ?? []
+            }
+        }
         .navigationTitle(isCreating ? "New Note" : "Note Detail")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(!isCreating)  // Hide back button only when editing
+        .navigationBarBackButtonHidden(!isCreating) // Hide back button only when editing
         .toolbar {
             if isCreating {
                 // Creating mode: Back chevron and conditional Save checkmark
@@ -183,15 +231,18 @@ struct NoteEditorView: View {
             Button("Delete", role: .destructive) {
                 deleteNote()
             }
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
         } message: {
             Text("This action cannot be undone.")
         }
         .alert("Unsaved Changes", isPresented: $showingDiscardAlert) {
+            // Button("Save Changes", role: .confirm) {
+            //     saveNote()
+            // }
             Button("Discard Changes", role: .destructive) {
                 dismiss()
             }
-            Button("Keep Editing", role: .cancel) { }
+            Button("Keep Editing", role: .cancel) {}
         } message: {
             Text("You have unsaved changes. Do you want to discard them?")
         }
@@ -214,10 +265,12 @@ struct NoteEditorView: View {
             newNote.content = trimmedContent
             newNote.createdDate = Date()
             newNote.category = editedCategory
+            newNote.tags = editedTags as NSSet
         } else {
             // Update existing note
             note?.content = trimmedContent
             note?.category = editedCategory
+            note?.tags = editedTags as NSSet
         }
 
         // Save to CoreData
@@ -228,6 +281,24 @@ struct NoteEditorView: View {
             let nsError = error as NSError
             print("Error saving note: \(nsError), \(nsError.userInfo)")
         }
+    }
+
+    private func addTagsFromInput() {
+        // Parse the input string into individual tag names
+        let tagNames = parseTagInput(tagInput)
+
+        // Create or find each tag and add to editedTags
+        for tagName in tagNames {
+            let tag = findOrCreateTag(name: tagName, context: viewContext)
+            editedTags.insert(tag)
+        }
+
+        // Clear the input field
+        tagInput = ""
+    }
+
+    private func removeTag(_ tag: TagEntity) {
+        editedTags.remove(tag)
     }
 
     private func deleteNote() {
@@ -245,6 +316,7 @@ struct NoteEditorView: View {
 }
 
 // MARK: - Date Formatter
+
 private let timestampFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateStyle = .full
@@ -253,6 +325,7 @@ private let timestampFormatter: DateFormatter = {
 }()
 
 // MARK: - Preview
+
 #Preview("Create New Note") {
     NavigationStack {
         NoteEditorView()
@@ -262,14 +335,16 @@ private let timestampFormatter: DateFormatter = {
 
 #Preview("Edit Existing Note") {
     let context = PersistenceController.preview.container.viewContext
-    let note = NoteEntity(context: context)
-    note.id = UUID()
-    note.content = "Sample note for editing"
-    note.createdDate = Date()
+    let sampleNote = {
+        let note = NoteEntity(context: context)
+        note.id = UUID()
+        note.content = "Sample note for editing"
+        note.createdDate = Date()
+        return note
+    }()
 
     return NavigationStack {
-        NoteEditorView(note: note)
+        NoteEditorView(note: sampleNote)
             .environment(\.managedObjectContext, context)
     }
 }
-
