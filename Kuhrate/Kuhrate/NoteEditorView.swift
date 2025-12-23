@@ -14,6 +14,12 @@ struct NoteEditorView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.managedObjectContext) private var viewContext
 
+    // MARK: - Fetch Requests
+
+    @FetchRequest(
+        sortDescriptors: [SortDescriptor(\.sortOrder, order: .forward)]
+    ) private var sourceTypes: FetchedResults<SourceTypeEntity>
+
     // MARK: - Input
 
     // The note being edited (nil = creating new note)
@@ -25,6 +31,8 @@ struct NoteEditorView: View {
     @State private var editedContent: String
     @State private var editedCategory: CategoryEntity?
     @State private var editedTags: Set<TagEntity> = []
+    @State private var editedSource: String = ""
+    @State private var editedSourceType: SourceTypeEntity?
 
     // UI state
     @State private var showingCategoryPicker = false
@@ -49,7 +57,10 @@ struct NoteEditorView: View {
             let contentChanged = editedContent.trimmingCharacters(in: .whitespacesAndNewlines) != (note?.content ?? "")
             let categoryChanged = editedCategory?.id != note?.category?.id
             let tagsChanged = editedTags != (note?.tags as? Set<TagEntity> ?? [])
-            return contentChanged || categoryChanged || tagsChanged
+            let sourceChanged = editedSource.trimmingCharacters(in: .whitespacesAndNewlines) != (note?.source ?? "")
+            let sourceTypeChanged = editedSourceType?.id != note?.sourceType?.id
+
+            return contentChanged || categoryChanged || tagsChanged || sourceChanged || sourceTypeChanged
         }
     }
 
@@ -61,6 +72,8 @@ struct NoteEditorView: View {
         _editedContent = State(initialValue: note?.content ?? "")
         _editedCategory = State(initialValue: note?.category)
         _editedTags = State(initialValue: note?.tags as? Set<TagEntity> ?? [])
+        _editedSource = State(initialValue: note?.source ?? "")
+        _editedSourceType = State(initialValue: note?.sourceType)
     }
 
     // MARK: - Body
@@ -93,38 +106,77 @@ struct NoteEditorView: View {
 
             Spacer()
 
-            // Tag input and pills
+            // Input Fields
             VStack(spacing: 12) {
-                // Tag pills (horizontal scrolling)
-                if !editedTags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(Array(editedTags).sorted(by: { ($0.name ?? "") < ($1.name ?? "") }), id: \.id) { tag in
-                                TagPillView(
-                                    tagName: tag.name ?? "",
-                                    onRemove: {
-                                        removeTag(tag)
-                                    }
-                                )
+                // Source Input
+                VStack(spacing: 8) {
+                    HStack {
+                        Image(systemName: editedSourceType?.icon ?? "quote.bubble")
+                            .foregroundColor(.gray)
+
+                        TextField("Source (URL, book, podcast...)", text: $editedSource)
+                            .font(.body)
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.default)
+                            .onChange(of: editedSource) { newValue in
+                                detectSourceType(for: newValue)
+                            }
+
+                        if !editedSource.isEmpty {
+                            Button {
+                                editedSource = ""
+                                editedSourceType = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
                             }
                         }
-                        .padding(.horizontal)
+                    }
+                    .padding()
+                    .background(Color(uiColor: .secondarySystemBackground))
+                    .cornerRadius(10)
+
+                    // Source Type Picker (Pills)
+                    if !editedSource.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(sourceTypes) { type in
+                                    Button {
+                                        if editedSourceType?.id == type.id {
+                                            editedSourceType = nil
+                                        } else {
+                                            editedSourceType = type
+                                        }
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: type.icon ?? "circle")
+                                            Text(type.name ?? "")
+                                        }
+                                        .font(.caption)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            editedSourceType?.id == type.id
+                                                ? Color.blue
+                                                : Color(uiColor: .tertiarySystemBackground)
+                                        )
+                                        .foregroundColor(
+                                            editedSourceType?.id == type.id
+                                                ? .white
+                                                : .primary
+                                        )
+                                        .cornerRadius(16)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(Color(uiColor: .separator), lineWidth: editedSourceType?.id == type.id ? 0 : 0.5)
+                                        )
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 4)
+                        }
                     }
                 }
-
-                // Tag input field
-                HStack {
-                    Image(systemName: "tag.fill")
-                        .foregroundColor(.gray)
-                    TextField("Add tags (space or comma separated)", text: $tagInput)
-                        .font(.body)
-                        .onSubmit {
-                            addTagsFromInput()
-                        }
-                }
-                .padding()
-                .background(Color(uiColor: .secondarySystemBackground))
-                .cornerRadius(10)
 
                 // Category selector button
                 Button {
@@ -146,17 +198,49 @@ struct NoteEditorView: View {
                     .background(Color(uiColor: .secondarySystemBackground))
                     .cornerRadius(10)
                 }
+
+                // Tag input field
+                HStack {
+                    Image(systemName: "tag.fill")
+                        .foregroundColor(.gray)
+                    TextField("Add tags (space or comma separated)", text: $tagInput)
+                        .font(.body)
+                        .onSubmit {
+                            addTagsFromInput()
+                        }
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemBackground))
+                .cornerRadius(10)
+
+                // Tag pills (horizontal scrolling)
+                if !editedTags.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(Array(editedTags).sorted(by: { ($0.name ?? "") < ($1.name ?? "") }), id: \.id) { tag in
+                                TagPillView(
+                                    tagName: tag.name ?? "",
+                                    onRemove: {
+                                        removeTag(tag)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
             }
             .padding(.horizontal)
             .padding(.bottom)
         }
         .onAppear {
             // Ensure state is synchronized with the note when the view appears
-            // This fixes the issue where stale state persists when re-opening a note
             if let note = note {
                 editedContent = note.content ?? ""
                 editedCategory = note.category
                 editedTags = note.tags as? Set<TagEntity> ?? []
+                editedSource = note.source ?? ""
+                editedSourceType = note.sourceType
             }
         }
         .navigationTitle(isCreating ? "New Note" : "Note Detail")
@@ -236,9 +320,9 @@ struct NoteEditorView: View {
             Text("This action cannot be undone.")
         }
         .alert("Unsaved Changes", isPresented: $showingDiscardAlert) {
-            // Button("Save Changes", role: .confirm) {
-            //     saveNote()
-            // }
+            Button("Save Changes", role: .none) {
+                saveNote()
+            }
             Button("Discard Changes", role: .destructive) {
                 dismiss()
             }
@@ -250,8 +334,32 @@ struct NoteEditorView: View {
 
     // MARK: - Functions
 
+    private func detectSourceType(for text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Auto-detect link
+        if trimmed.lowercased().hasPrefix("http") {
+            if let linkType = sourceTypes.first(where: { $0.name == "Link" }) {
+                // Only set if not already set or if it's "Other"
+                if editedSourceType == nil || editedSourceType?.name == "Other" {
+                    editedSourceType = linkType
+                }
+            }
+        }
+
+        // If text becomes empty, clear type (already handled by clear button, but good for backspace)
+        if trimmed.isEmpty {
+            editedSourceType = nil
+        } else if editedSourceType == nil {
+            // Default to "Other" or "Book" if nothing selected?
+            // Maybe better to leave it empty and let user pick, or default to "Other"
+            // For now, let's leave nil so user is prompted to pick (since pills appear)
+        }
+    }
+
     private func saveNote() {
         let trimmedContent = editedContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedSource = editedSource.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Don't save if content is empty
         guard !trimmedContent.isEmpty else {
@@ -266,11 +374,15 @@ struct NoteEditorView: View {
             newNote.createdDate = Date()
             newNote.category = editedCategory
             newNote.tags = editedTags as NSSet
+            newNote.source = trimmedSource.isEmpty ? nil : trimmedSource
+            newNote.sourceType = trimmedSource.isEmpty ? nil : editedSourceType
         } else {
             // Update existing note
             note?.content = trimmedContent
             note?.category = editedCategory
             note?.tags = editedTags as NSSet
+            note?.source = trimmedSource.isEmpty ? nil : trimmedSource
+            note?.sourceType = trimmedSource.isEmpty ? nil : editedSourceType
         }
 
         // Save to CoreData

@@ -17,6 +17,8 @@ struct PersistenceController {
 
         // Seed predefined categories
         seedCategoriesIfNeeded(context: viewContext)
+        // Seed predefined source types
+        seedSourceTypesIfNeeded(context: viewContext)
 
         let category = CategoryEntity(context: viewContext)
         category.id = UUID()
@@ -76,6 +78,8 @@ struct PersistenceController {
 
         // Seed predefined categories on first launch
         PersistenceController.seedCategoriesIfNeeded(context: container.viewContext)
+        // Seed predefined source types on first launch
+        PersistenceController.seedSourceTypesIfNeeded(context: container.viewContext)
     }
 
     // MARK: - Category Seeding
@@ -128,6 +132,57 @@ struct PersistenceController {
         } catch {
             let nsError = error as NSError
             print("❌ Error seeding categories: \(nsError), \(nsError.userInfo)")
+        }
+    }
+
+    // MARK: - SourceType Seeding
+
+    /// Seeds the predefined source types if they don't exist yet
+    static func seedSourceTypesIfNeeded(context: NSManagedObjectContext) {
+        // Check if source types already exist
+        let fetchRequest: NSFetchRequest<SourceTypeEntity> = SourceTypeEntity.fetchRequest()
+
+        do {
+            let count = try context.count(for: fetchRequest)
+            if count > 0 {
+                // Source types already exist, skip seeding
+                print("Source types already exist, skip seeding")
+                return
+            }
+        } catch {
+            print("Error checking for existing source types: \(error)")
+            return
+        }
+
+        // Define predefined source types (name, icon, sortOrder)
+        // Ordered logically or alphabetically
+        let predefinedSourceTypes = [
+            ("Link", "link", 1),
+            ("Book", "book.closed", 2),
+            ("Video", "film", 3),
+            ("Podcast", "mic", 4),
+            ("Article", "newspaper", 5),
+            ("Person", "person", 6),
+            ("Other", "asterisk", 7)
+        ]
+
+        // Create each source type
+        for (name, icon, order) in predefinedSourceTypes {
+            let sourceType = SourceTypeEntity(context: context)
+            sourceType.id = UUID()
+            sourceType.name = name
+            sourceType.icon = icon
+            sourceType.isCustom = false
+            sourceType.sortOrder = Int16(order)
+        }
+
+        // Save the source types
+        do {
+            try context.save()
+            print("✅ Seeded \(predefinedSourceTypes.count) predefined source types")
+        } catch {
+            let nsError = error as NSError
+            print("❌ Error seeding source types: \(nsError), \(nsError.userInfo)")
         }
     }
 }
