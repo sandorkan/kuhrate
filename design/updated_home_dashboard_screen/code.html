@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Home/Dashboard Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#ffffff",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<main class="flex-1 pb-32">
+<div class="flex flex-col gap-4 p-4 pb-2">
+<div class="flex items-center h-12 justify-between">
+<div class="flex size-12 shrink-0 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar with abstract gradient" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAwDIFJb3VbeN7SmCxjZ02O2VamiB5lyT648h0kPbMozM7erXq5cPUbMWBncmkASzdG_Gq79sYbsWTp8_4XCs0_dBxjFclY6MeV_ZX9Yv8hc-Fp_L_FpSft3U7mG5zQZUtorWRmJhP24o1Ej6QR8-hBLN0VgXWwK084EdYGJBgJhekXROyy_AJB9DgEDGUD-abn3ukw5p_ndaWGwCsZTdvvBn1r3Q71zKAaeDuxX3T6J4e_YHhlj1BcI9QClw7v2VvSqPc9YCKkeYQ");'></div>
+</div>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full size-10 bg-gray-100 text-gray-600 gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0 hover:bg-gray-200 transition-colors">
+<span class="material-symbols-outlined text-gray-600" style="font-size: 22px;">settings</span>
+</button>
+</div>
+</div>
+<p class="text-gray-900 tracking-tight text-3xl font-bold leading-tight">Home</p>
+</div>
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-primary/10 border border-primary/20">
+<div class="flex w-full min-w-72 grow flex-col items-start justify-center gap-2 p-4">
+<p class="text-gray-900 text-lg font-semibold leading-tight tracking-[-0.015em]">5 Notes to Review Today</p>
+<p class="text-gray-600 text-sm font-normal leading-normal">Stay sharp by reviewing what you've learned.</p>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-9 px-4 bg-primary text-white text-sm font-medium leading-normal mt-2 hover:bg-blue-600 transition-colors">
+<span class="truncate">Start Review</span>
+</button>
+</div>
+</div>
+</div>
+<div class="px-4 pt-2">
+<div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+<button class="flex min-w-[64px] shrink-0 items-center justify-center overflow-hidden whitespace-nowrap rounded-full h-9 px-4 bg-primary text-white text-sm font-medium shadow-sm">All Notes</button>
+<button class="flex min-w-[64px] shrink-0 items-center justify-center overflow-hidden whitespace-nowrap rounded-full h-9 px-4 bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Weekly</button>
+<button class="flex min-w-[64px] shrink-0 items-center justify-center overflow-hidden whitespace-nowrap rounded-full h-9 px-4 bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Monthly</button>
+<button class="flex min-w-[64px] shrink-0 items-center justify-center overflow-hidden whitespace-nowrap rounded-full h-9 px-4 bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Yearly</button>
+</div>
+</div>
+<div class="flex flex-col gap-8 pt-6">
+<div class="flex flex-col">
+<div class="px-4 flex items-start justify-between mb-3">
+<div>
+<h3 class="text-gray-900 text-lg font-bold leading-tight">This Week</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="material-symbols-outlined text-orange-500" style="font-size: 18px; font-variation-settings: 'FILL' 1;">pie_chart</span>
+<span class="text-sm font-medium text-gray-600">60% Reviewed</span>
+</div>
+</div>
+<button class="flex items-center justify-center px-4 h-9 bg-primary/10 text-primary rounded-full text-sm font-semibold hover:bg-primary/20 transition-colors">
+                    Continue Review
+                </button>
+</div>
+<div class="flex flex-col px-2">
+<div class="flex items-center gap-4 p-2 rounded-lg min-h-[72px] justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-gray-600 flex items-center justify-center rounded-lg bg-gray-100 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 22px;">book</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 text-base font-medium leading-normal line-clamp-1">The Psychology of Money</p>
+<p class="text-gray-500 text-sm font-normal leading-normal line-clamp-2">A key takeaway from the first chapter is about...</p>
+</div>
+</div>
+<button class="flex items-center justify-center shrink-0 size-8 text-gray-400">
+<span class="material-symbols-outlined" style="font-size: 22px;">chevron_right</span>
+</button>
+</div>
+<div class="flex items-center gap-4 p-2 rounded-lg min-h-[72px] justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-gray-600 flex items-center justify-center rounded-lg bg-gray-100 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 22px;">smart_display</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 text-base font-medium leading-normal line-clamp-1">Huberman Lab: Focus Toolkit</p>
+<p class="text-gray-500 text-sm font-normal leading-normal line-clamp-2">Using visual gaze to enhance concentration is a powerful...</p>
+</div>
+</div>
+<button class="flex items-center justify-center shrink-0 size-8 text-gray-400">
+<span class="material-symbols-outlined" style="font-size: 22px;">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="px-4 flex items-start justify-between mb-3">
+<div>
+<h3 class="text-gray-900 text-lg font-bold leading-tight">Last Week</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="material-symbols-outlined text-green-600" style="font-size: 18px; font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-sm font-medium text-gray-600">All Reviewed</span>
+</div>
+</div>
+<button class="flex items-center justify-center px-4 h-9 bg-gray-100 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-200 transition-colors">
+                    Review Again
+                </button>
+</div>
+<div class="flex flex-col px-2">
+<div class="flex items-center gap-4 p-2 rounded-lg min-h-[72px] justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-gray-600 flex items-center justify-center rounded-lg bg-gray-100 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 22px;">podcasts</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 text-base font-medium leading-normal line-clamp-1">Acquired: The NVIDIA Story</p>
+<p class="text-gray-500 text-sm font-normal leading-normal line-clamp-2">From gaming chips to the engine of AI, the strategic pivots...</p>
+</div>
+</div>
+<button class="flex items-center justify-center shrink-0 size-8 text-gray-400">
+<span class="material-symbols-outlined" style="font-size: 22px;">chevron_right</span>
+</button>
+</div>
+<div class="flex items-center gap-4 p-2 rounded-lg min-h-[72px] justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-gray-600 flex items-center justify-center rounded-lg bg-gray-100 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 22px;">book</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 text-base font-medium leading-normal line-clamp-1">Thinking, Fast and Slow</p>
+<p class="text-gray-500 text-sm font-normal leading-normal line-clamp-2">System 1 vs. System 2 thinking explains cognitive biases...</p>
+</div>
+</div>
+<button class="flex items-center justify-center shrink-0 size-8 text-gray-400">
+<span class="material-symbols-outlined" style="font-size: 22px;">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="px-4 flex items-start justify-between mb-3">
+<div>
+<h3 class="text-gray-900 text-lg font-bold leading-tight">Week of Oct 8</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="material-symbols-outlined text-gray-400" style="font-size: 18px;">circle</span>
+<span class="text-sm font-medium text-gray-600">0% Reviewed</span>
+</div>
+</div>
+<button class="flex items-center justify-center px-4 h-9 bg-primary text-white rounded-full text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm">
+                    Start Review
+                </button>
+</div>
+<div class="flex flex-col px-2">
+<div class="flex items-center gap-4 p-2 rounded-lg min-h-[72px] justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-gray-600 flex items-center justify-center rounded-lg bg-gray-100 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 22px;">article</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 text-base font-medium leading-normal line-clamp-1">The Power of Habit</p>
+<p class="text-gray-500 text-sm font-normal leading-normal line-clamp-2">The cue-routine-reward loop is fundamental to habit...</p>
+</div>
+</div>
+<button class="flex items-center justify-center shrink-0 size-8 text-gray-400">
+<span class="material-symbols-outlined" style="font-size: 22px;">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-between gap-4 p-4 pointer-events-none">
+<div class="relative flex-1 flex items-center pointer-events-auto">
+<div class="absolute inset-y-0 left-0 flex items-center pl-4">
+<span class="material-symbols-outlined text-gray-500" style="font-size: 24px;">search</span>
+</div>
+<input class="w-full h-14 pl-12 pr-12 border-none rounded-full bg-white/90 shadow-lg shadow-gray-200 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-base placeholder-gray-400" placeholder="Search notes" type="text"/>
+<div class="absolute inset-y-0 right-0 flex items-center pr-4">
+<button class="flex items-center justify-center text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">mic</span>
+</button>
+</div>
+</div>
+<button class="flex items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/30 size-14 pointer-events-auto shrink-0 hover:bg-blue-600 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 28px; font-variation-settings: 'wght' 500;">add</span>
+</button>
+</div>
+</div>
+
+</body></html>
