@@ -30,3 +30,34 @@ extension Color {
     }
 }
 
+// MARK: - Calendar Helpers
+extension Calendar {
+    func isDateInThisWeek(_ date: Date) -> Bool {
+        return isDate(date, equalTo: Date(), toGranularity: .weekOfYear)
+    }
+    
+    func isDateInLastWeek(_ date: Date) -> Bool {
+        guard let lastWeek = self.date(byAdding: .weekOfYear, value: -1, to: Date()) else { return false }
+        return isDate(date, equalTo: lastWeek, toGranularity: .weekOfYear)
+    }
+    
+    func isDateInThisMonth(_ date: Date) -> Bool {
+        return isDate(date, equalTo: Date(), toGranularity: .month)
+    }
+    
+    func isDateInLastMonth(_ date: Date) -> Bool {
+        guard let lastMonth = self.date(byAdding: .month, value: -1, to: Date()) else { return false }
+        return isDate(date, equalTo: lastMonth, toGranularity: .month)
+    }
+    
+    func isDateInThisYear(_ date: Date) -> Bool {
+        return isDate(date, equalTo: Date(), toGranularity: .year)
+    }
+}
+
+extension Date {
+    var startOfWeek: Date? {
+        let calendar = Calendar.current
+        return calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: self))
+    }
+}

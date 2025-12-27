@@ -5,8 +5,8 @@
 //  Created by Sandro Brunner on 14.12.2025.
 //
 
-import SwiftUI
 import CoreData
+import SwiftUI
 
 @main
 struct KuhrateApp: App {
@@ -14,7 +14,7 @@ struct KuhrateApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
