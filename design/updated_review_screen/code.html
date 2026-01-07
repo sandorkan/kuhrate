@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Monthly Review Screen - Redesigned</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&amp;family=SF+Pro+Text:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    "surface-primary": "#FFFFFF",
+                    "surface-secondary": "#F5F5F7",
+                    "text-primary": "#1C1C1E",
+                    "text-secondary": "#636366",
+                    "text-tertiary": "#8E8E93",
+                    "accent": "#007AFF", 
+                    "accent-soft": "#E5F2FF",
+                    "destructive": "#FF3B30",
+                    "destructive-soft": "#FFECEB",
+                    "separator": "#E5E5EA",
+                },
+                fontFamily: {
+                    "sans": ["SF Pro Text", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+                    "display": ["SF Pro Display", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"]
+                },
+                boxShadow: {
+                    "card": "0 4px 20px rgba(0, 0, 0, 0.03)",
+                    "float": "0 8px 30px rgba(0, 0, 0, 0.08)",
+                }
+            },
+        },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }.no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }.no-scrollbar {
+        -ms-overflow-style: none;scrollbar-width: none;}
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-secondary text-text-primary font-sans antialiased h-[100dvh] overflow-hidden flex flex-col">
+<header class="flex-none px-5 pt-12 pb-2 bg-surface-secondary z-20">
+<div class="flex items-center justify-between mb-6">
+<button class="flex items-center justify-center size-8 rounded-full bg-white/80 backdrop-blur-sm text-text-primary hover:bg-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+</button>
+<h1 class="text-[17px] font-semibold tracking-tight text-text-primary">Review Session</h1>
+<div class="size-8"></div>
+</div>
+<div class="flex flex-col gap-2 max-w-[90%] mx-auto">
+<div class="flex items-center justify-center text-[13px] font-medium text-text-tertiary">
+<span>1 of 2</span>
+</div>
+<div class="h-1 w-full rounded-full bg-separator overflow-hidden">
+<div class="h-full w-1/2 bg-text-primary rounded-full"></div>
+</div>
+</div>
+</header>
+<main class="flex-1 px-5 pt-4 pb-2 overflow-hidden flex flex-col items-center justify-center relative z-10">
+<div class="w-full h-full bg-surface-primary rounded-[32px] shadow-card px-8 py-10 flex flex-col relative overflow-y-auto no-scrollbar">
+<div class="flex-1 flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<h2 class="font-display text-2xl font-bold leading-tight text-text-primary">
+                    Current Week Insight #2
+                </h2>
+<time class="text-[14px] font-medium text-text-tertiary">25.12.2025</time>
+</div>
+<p class="text-[17px] leading-relaxed text-text-secondary font-normal">
+                    This is a sample insight captured for testing the timeline grouping and review flow.
+                </p>
+</div>
+<div class="mt-auto pt-10 flex flex-col gap-4">
+<div class="flex items-center gap-3 text-text-secondary">
+<span class="material-symbols-outlined text-text-tertiary" style="font-size: 20px;">book_2</span>
+<span class="text-[15px] font-medium">Sample Source 2</span>
+</div>
+<div class="flex items-center gap-3 text-text-secondary">
+<span class="material-symbols-outlined text-pink-500" style="font-variation-settings: 'FILL' 1; font-size: 20px;">folder</span>
+<span class="text-[15px] font-medium">Relationships</span>
+</div>
+</div>
+</div>
+</main>
+<footer class="flex-none px-6 pt-2 pb-10 bg-surface-secondary z-20">
+<div class="flex items-center justify-center gap-12 mb-8">
+<button class="group flex flex-col items-center gap-2">
+<div class="size-16 rounded-full bg-destructive-soft flex items-center justify-center transition-transform group-active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-destructive" style="font-size: 28px;">archive</span>
+</div>
+<span class="text-[13px] font-medium text-destructive">Archive</span>
+</button>
+<button class="group flex flex-col items-center gap-2">
+<div class="size-16 rounded-full bg-accent-soft flex items-center justify-center transition-transform group-active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-accent" style="font-size: 28px; font-weight: 600;">arrow_upward</span>
+</div>
+<span class="text-[13px] font-medium text-accent">Keep</span>
+</button>
+</div>
+<div class="hidden">
+</div>
+<div class="flex items-center justify-between px-2 opacity-40 hover:opacity-100 transition-opacity">
+<button class="text-sm font-medium text-text-tertiary flex items-center gap-1 p-2">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+                Previous
+             </button>
+<button class="text-sm font-medium text-text-tertiary flex items-center gap-1 p-2">
+                Next
+                <span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</footer>
+
+</body></html>

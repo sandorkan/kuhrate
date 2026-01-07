@@ -20,10 +20,10 @@ enum ReviewCycle: Int16, CaseIterable, Comparable {
     
     var title: String {
         switch self {
-        case .daily: return "Daily"
-        case .weekly: return "Weekly"
-        case .monthly: return "Monthly"
-        case .yearly: return "Yearly"
+        case .daily: return "Notes"
+        case .weekly: return "Month"
+        case .monthly: return "Year"
+        case .yearly: return "Evergreen"
         }
     }
 }

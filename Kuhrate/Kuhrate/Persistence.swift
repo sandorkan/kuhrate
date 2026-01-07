@@ -75,6 +75,7 @@ struct PersistenceController {
             }
         })
         container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
         // Seed predefined categories on first launch
         PersistenceController.seedCategoriesIfNeeded(context: container.viewContext)

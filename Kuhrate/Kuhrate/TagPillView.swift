@@ -10,7 +10,7 @@ import SwiftUI
 struct TagPillView: View {
     // MARK: - Input
     let tagName: String
-    let onRemove: () -> Void
+    let onRemove: (() -> Void)?
 
     // MARK: - Body
     var body: some View {
@@ -19,12 +19,14 @@ struct TagPillView: View {
                 .font(.subheadline)
                 .foregroundColor(.primary)
 
-            Button {
-                onRemove()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+            if let onRemove = onRemove {
+                Button {
+                    onRemove()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
             }
         }
         .padding(.horizontal, 12)

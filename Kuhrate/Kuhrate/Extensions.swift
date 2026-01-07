@@ -60,4 +60,22 @@ extension Date {
         let calendar = Calendar.current
         return calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: self))
     }
+    
+    /// Returns a stable identifier for the week (e.g., "2025-W01")
+    var weekIdentifier: String {
+        let components = Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: self)
+        return "\(components.yearForWeekOfYear ?? 0)-W\(String(format: "%02d", components.weekOfYear ?? 0))"
+    }
+    
+    /// Returns a stable identifier for the month (e.g., "2025-01")
+    var monthIdentifier: String {
+        let components = Calendar.current.dateComponents([.year, .month], from: self)
+        return String(format: "%d-%02d", components.year ?? 0, components.month ?? 0)
+    }
+    
+    /// Returns a stable identifier for the year (e.g., "2025")
+    var yearIdentifier: String {
+        let components = Calendar.current.dateComponents([.year], from: self)
+        return "\(components.year ?? 0)"
+    }
 }

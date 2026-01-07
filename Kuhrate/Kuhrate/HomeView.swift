@@ -21,57 +21,98 @@ struct HomeView: View {
     )
     private var allNotes: FetchedResults<NoteEntity>
 
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \ReviewSessionEntity.startedDate, ascending: false)],
+        animation: .default
+    )
+    private var reviewSessions: FetchedResults<ReviewSessionEntity>
+
     // MARK: - State
 
     @State private var selectedTab: ReviewCycle = .daily
     @State private var showingAddNote = false
+    @State private var showingSettings = false
     @State private var searchText = ""
+
+    // Review State
+    @State private var activeReviewSession: ReviewSessionEntity?
 
     // MARK: - Computed Properties
 
     /// Groups the notes based on the selected tab and time periods
-    private var groupedTimeline: [(String, [NoteEntity])] {
+    /// Returns: (Title, Notes, PeriodIdentifier)
+    private var groupedTimeline: [(title: String, notes: [NoteEntity], id: String)] {
         let filtered = allNotes.filter { note in
-            // Visibility logic: show if note has reached this cycle level or higher
             note.reviewCycle >= selectedTab.rawValue
         }
 
         let calendar = Calendar.current
+
+        // Grouping key is the Period Identifier (e.g. "2025-W01")
         let groups = Dictionary(grouping: filtered) { (note: NoteEntity) -> String in
             let date = note.createdDate ?? Date()
-
             switch selectedTab {
-            case .daily:
-                // Daily notes -> Group by Week
-                if calendar.isDateInThisWeek(date) { return "This Week" }
-                if calendar.isDateInLastWeek(date) { return "Last Week" }
-                let formatter = DateFormatter()
-                formatter.dateFormat = "'Week of' MMM d"
-                let start = date.startOfWeek ?? date
-                return formatter.string(from: start)
-
-            case .weekly:
-                // Weekly notes -> Group by Month
-                if calendar.isDateInThisMonth(date) { return "This Month" }
-                if calendar.isDateInLastMonth(date) { return "Last Month" }
-                let formatter = DateFormatter()
-                formatter.dateFormat = "MMMM yyyy"
-                return formatter.string(from: date)
-
-            case .monthly, .yearly:
-                // Monthly/Yearly notes -> Group by Year
-                if calendar.isDateInThisYear(date) { return "This Year" }
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy"
-                return formatter.string(from: date)
+            case .daily: return date.weekIdentifier
+            case .weekly: return date.monthIdentifier
+            case .monthly: return date.yearIdentifier
+            case .yearly: return "Evergreen"
             }
         }
 
-        return groups.sorted { group1, group2 -> Bool in
-            let date1 = group1.value.first?.createdDate ?? Date.distantPast
-            let date2 = group2.value.first?.createdDate ?? Date.distantPast
+        // Map to display models
+        let result = groups.map { (key: String, notes: [NoteEntity]) -> (title: String, notes: [NoteEntity], id: String) in
+            let date = notes.first?.createdDate ?? Date()
+            let title: String
+
+            switch selectedTab {
+            case .daily:
+                if calendar.isDateInThisWeek(date) { title = "This Week" }
+                else if calendar.isDateInLastWeek(date) { title = "Last Week" }
+                else {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "'Week of' MMM d"
+                    let start = date.startOfWeek ?? date
+                    title = formatter.string(from: start)
+                }
+            case .weekly:
+                if calendar.isDateInThisMonth(date) { title = "This Month" }
+                else if calendar.isDateInLastMonth(date) { title = "Last Month" }
+                else {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MMMM yyyy"
+                    title = formatter.string(from: date)
+                }
+            case .monthly, .yearly:
+                if calendar.isDateInThisYear(date) { title = "This Year" }
+                else {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "yyyy"
+                    title = formatter.string(from: date)
+                }
+            }
+
+            return (title: title, notes: notes, id: key)
+        }
+
+        return result.sorted { group1, group2 -> Bool in
+            let date1 = group1.notes.first?.createdDate ?? Date.distantPast
+            let date2 = group2.notes.first?.createdDate ?? Date.distantPast
             return date1 > date2
         }
+    }
+
+    // Finds the oldest period that is actionable (in the past and incomplete)
+    private var heroTarget: (title: String, id: String, progress: Double, noteCount: Int)? {
+        // Iterate oldest to newest (reversed)
+        for group in groupedTimeline.reversed() {
+            if canStartReview(for: group.id) {
+                let progress = calculateProgress(for: group.id, notes: group.notes)
+                if progress < 1.0 {
+                    return (group.title, group.id, progress, group.notes.count)
+                }
+            }
+        }
+        return nil
     }
 
     // MARK: - Body
@@ -81,6 +122,10 @@ struct HomeView: View {
             ZStack(alignment: .bottom) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
+                        headerSection
+
+                        heroCard
+
                         tabPicker
 
                         timelineContent
@@ -100,25 +145,115 @@ struct HomeView: View {
                         .environment(\.managedObjectContext, viewContext)
                 }
             }
+            .sheet(isPresented: $showingSettings) {
+                DevelopmentSettingsView()
+                    .environment(\.managedObjectContext, viewContext)
+            }
+            .fullScreenCover(item: $activeReviewSession) { session in
+                ReviewView(viewModel: ReviewViewModel(session: session, context: viewContext))
+            }
         }
     }
 
     // MARK: - UI Components
 
+    private var headerSection: some View {
+        HStack {
+            Text("Home")
+                .font(.system(size: 34, weight: .bold))
+
+            Spacer()
+
+            Button {
+                showingSettings = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.title2)
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 20)
+    }
+
+    @ViewBuilder
+    private var heroCard: some View {
+        if let target = heroTarget {
+            Button {
+                startReview(for: target.id)
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(target.progress == 0 ? "Ready for Review" : "Continue Review")
+                            .font(.subheadline.weight(.bold))
+                            .textCase(.uppercase)
+                            .opacity(0.8)
+                        
+                        Text(target.title)
+                            .font(.title2.bold())
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "note.text")
+                            Text("\(target.noteCount) Notes")
+                        }
+                        .font(.caption.weight(.medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(8)
+                    }
+                    .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(.white)
+                }
+                .padding(24)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.85)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .cornerRadius(24)
+                .shadow(color: Color.blue.opacity(0.25), radius: 12, x: 0, y: 6)
+            }
+            .padding(.horizontal)
+            .buttonStyle(.plain)
+        }
+    }
+
     private var tabPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(ReviewCycle.allCases, id: \.self) { cycle in
+                    let count = pendingReviewCount(for: cycle)
+
                     Button {
                         selectedTab = cycle
                     } label: {
-                        Text(cycle.title)
-                            .font(.subheadline.weight(.medium))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(selectedTab == cycle ? Color.blue : Color.gray.opacity(0.1))
-                            .foregroundColor(selectedTab == cycle ? .white : .primary)
-                            .cornerRadius(20)
+                        HStack(spacing: 6) {
+                            Text(cycle.title)
+
+                            if count > 0 {
+                                Text("\(count)")
+                                    .font(.caption2.bold())
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.red)
+                                    .clipShape(Capsule())
+                            }
+                        }
+                        .font(.subheadline.weight(.medium))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(selectedTab == cycle ? Color.blue : Color.gray.opacity(0.1))
+                        .foregroundColor(selectedTab == cycle ? .white : .primary)
+                        .cornerRadius(20)
                     }
                 }
             }
@@ -128,15 +263,16 @@ struct HomeView: View {
 
     private var timelineContent: some View {
         VStack(alignment: .leading, spacing: 32) {
-            ForEach(groupedTimeline, id: \.0) { groupName, notes in
-                timelineSection(title: groupName, notes: notes)
+            ForEach(groupedTimeline, id: \.id) { group in
+                timelineSection(title: group.title, notes: group.notes, periodIdentifier: group.id)
             }
         }
         .padding(.horizontal)
     }
 
-    private func timelineSection(title: String, notes: [NoteEntity]) -> some View {
-        let progress = calculateProgress(for: notes)
+    private func timelineSection(title: String, notes: [NoteEntity], periodIdentifier: String) -> some View {
+        let progress = calculateProgress(for: periodIdentifier, notes: notes)
+        let isReviewable = canStartReview(for: periodIdentifier)
 
         return VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -144,11 +280,17 @@ struct HomeView: View {
                     Text(title)
                         .font(.title2.bold())
 
-                    HStack(spacing: 6) {
-                        ProgressCircle(progress: progress)
-                            .frame(width: 16, height: 16)
+                    if isReviewable {
+                        HStack(spacing: 6) {
+                            ProgressCircle(progress: progress)
+                                .frame(width: 16, height: 16)
 
-                        Text(progress == 1.0 ? "All Reviewed" : "\(Int(progress * 100))% Reviewed")
+                            Text(progress == 1.0 ? "All Reviewed" : "\(Int(progress * 100))% Reviewed")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        Text("Collecting...")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -156,22 +298,28 @@ struct HomeView: View {
 
                 Spacer()
 
-                if progress < 1.0 {
-                    Button {
-                        // Start/Continue review for this section
-                    } label: {
-                        Text(progress > 0 ? "Continue" : "Start Review")
-                            .font(.subheadline.weight(.medium))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color.blue.opacity(0.1))
-                            .foregroundColor(.blue)
-                            .cornerRadius(20)
+                if isReviewable {
+                    if progress < 1.0 {
+                        Button {
+                            startReview(for: periodIdentifier)
+                        } label: {
+                            Text(progress > 0 ? "Continue" : "Start Review")
+                                .font(.subheadline.weight(.medium))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.blue.opacity(0.1))
+                                .foregroundColor(.blue)
+                                .cornerRadius(20)
+                        }
+                    } else {
+                        Button {
+                            startReview(for: periodIdentifier)
+                        } label: {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.title3)
+                        }
                     }
-                } else {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.title3)
                 }
             }
 
@@ -226,18 +374,95 @@ struct HomeView: View {
 
     // MARK: - Logic Helpers
 
-        private func calculateProgress(for notes: [NoteEntity]) -> Double {
-            guard !notes.isEmpty else { return 0 }
-            
-            // A note is considered reviewed for the current level if:
-            // 1. It has been promoted to a higher cycle (e.g., from Daily to Weekly)
-            // 2. OR it has been archived (meaning a decision was made to not promote it)
-            let reviewedCount = notes.filter { note in
-                note.reviewCycle > selectedTab.rawValue || note.isArchived
-            }.count
-            
-            return Double(reviewedCount) / Double(notes.count)
-        }}
+    private func pendingReviewCount(for cycle: ReviewCycle) -> Int {
+        let relevantNotes = allNotes.filter { $0.reviewCycle >= cycle.rawValue }
+
+        let groups = Dictionary(grouping: relevantNotes) { (note: NoteEntity) -> String in
+            let date = note.createdDate ?? Date()
+            switch cycle {
+            case .daily: return date.weekIdentifier
+            case .weekly: return date.monthIdentifier
+            case .monthly: return date.yearIdentifier
+            case .yearly: return "Evergreen"
+            }
+        }
+
+        var pendingCount = 0
+        let now = Date()
+        let currentIdentifier: String
+
+        switch cycle {
+        case .daily: currentIdentifier = now.weekIdentifier
+        case .weekly: currentIdentifier = now.monthIdentifier
+        case .monthly: currentIdentifier = now.yearIdentifier
+        case .yearly: return 0
+        }
+
+        for (periodIdentifier, notes) in groups {
+            if periodIdentifier < currentIdentifier {
+                let progress = calculateProgress(for: periodIdentifier, notes: notes, cycle: cycle)
+                if progress < 1.0 {
+                    pendingCount += 1
+                }
+            }
+        }
+
+        return pendingCount
+    }
+
+    private func canStartReview(for periodIdentifier: String) -> Bool {
+        let now = Date()
+        let currentIdentifier: String
+
+        switch selectedTab {
+        case .daily: currentIdentifier = now.weekIdentifier
+        case .weekly: currentIdentifier = now.monthIdentifier
+        case .monthly: currentIdentifier = now.yearIdentifier
+        case .yearly: return false
+        }
+
+        return periodIdentifier < currentIdentifier
+    }
+
+    private func calculateProgress(for periodIdentifier: String, notes: [NoteEntity]) -> Double {
+        return calculateProgress(for: periodIdentifier, notes: notes, cycle: selectedTab)
+    }
+
+    private func calculateProgress(for periodIdentifier: String, notes _: [NoteEntity], cycle: ReviewCycle) -> Double {
+        let targetType: ReviewType
+        switch cycle {
+        case .daily: targetType = .weekly
+        case .weekly: targetType = .monthly
+        case .monthly: targetType = .yearly
+        case .yearly: return 0
+        }
+
+        if let session = reviewSessions.first(where: { $0.periodIdentifier == periodIdentifier && $0.type == targetType.rawValue }) {
+            guard session.totalNotes > 0 else { return 1.0 }
+            return Double(session.notesReviewed) / Double(session.totalNotes)
+        }
+
+        return 0.0
+    }
+
+    private func startReview(for periodIdentifier: String) {
+        let reviewType: ReviewType
+        switch selectedTab {
+        case .daily: reviewType = .weekly
+        case .weekly: reviewType = .monthly
+        case .monthly: reviewType = .yearly
+        case .yearly: return
+        }
+
+        let session = ReviewSessionManager.shared.startOrResumeSession(
+            for: periodIdentifier,
+            type: reviewType,
+            context: viewContext
+        )
+
+        activeReviewSession = session
+    }
+}
 
 // MARK: - Row View
 
@@ -246,23 +471,22 @@ struct HomeNoteRowView: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.1))
-                    .frame(width: 48, height: 48)
-
-                Image(systemName: note.sourceType?.icon ?? "quote.bubble")
-                    .foregroundColor(.gray)
-            }
-
             VStack(alignment: .leading, spacing: 2) {
-                // First line as title
-                Text(note.content?.components(separatedBy: .newlines).first ?? "Untitled")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
+                HStack(alignment: .firstTextBaseline) {
+                    Text(note.content?.components(separatedBy: .newlines).first ?? "Untitled")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
 
-                // Rest as preview
+                    Spacer()
+
+                    if let date = note.createdDate {
+                        Text(date, formatter: itemDateFormatter)
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                }
+
                 Text(note.content?.components(separatedBy: .newlines).dropFirst().joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -277,6 +501,12 @@ struct HomeNoteRowView: View {
         }
     }
 }
+
+private let itemDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd.MM.yyyy"
+    return formatter
+}()
 
 // MARK: - Progress View
 
