@@ -12,11 +12,11 @@ struct ReviewView: View {
     // MARK: - Environment
     @Environment(\.dismiss) var dismiss
     
-    // MARK: - State Object
-    @StateObject var viewModel: ReviewViewModel
+    // MARK: - Observed Object
+    @ObservedObject var viewModel: ReviewViewModel
     
     init(viewModel: ReviewViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
     }
     
     // MARK: - Body
@@ -27,8 +27,8 @@ struct ReviewView: View {
             
             // Content
             if viewModel.isFinished && viewModel.progress == 1.0 {
-                if viewModel.currentNote != nil {
-                    cardView(for: viewModel.currentNote!)
+                if let note = viewModel.currentNote {
+                    cardView(for: note)
                 } else {
                     completionView
                 }
@@ -123,7 +123,7 @@ struct ReviewView: View {
                 
                 // Body
                 ScrollView {
-                    Text(note.content?.components(separatedBy: .newlines).dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
+                    Text(extractBody(from: note.content))
                         .font(.body)
                         .foregroundColor(.primary)
                         .lineSpacing(4)
@@ -234,6 +234,15 @@ struct ReviewView: View {
             .padding(.horizontal, 40)
             .padding(.bottom, 10)
         }
+    }
+    
+    private func extractBody(from content: String?) -> String {
+        guard let content = content,
+              let firstNewlineIndex = content.firstIndex(where: { $0.isNewline }) else {
+            return ""
+        }
+        return content[content.index(after: firstNewlineIndex)...]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     private func actionButton(icon: String, label: String, color: Color, isSelected: Bool, action: @escaping () -> Void) -> some View {

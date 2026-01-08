@@ -289,10 +289,6 @@ struct HomeView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
-                    } else {
-                        Text("Collecting...")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -454,13 +450,16 @@ struct HomeView: View {
         case .yearly: return
         }
 
-        let session = ReviewSessionManager.shared.startOrResumeSession(
-            for: periodIdentifier,
-            type: reviewType,
-            context: viewContext
-        )
-
-        activeReviewSession = session
+        do {
+            let session = try ReviewSessionManager.shared.startOrResumeSession(
+                for: periodIdentifier,
+                type: reviewType,
+                context: viewContext
+            )
+            activeReviewSession = session
+        } catch {
+            print("❌ Failed to start review session: \(error)")
+        }
     }
 }
 

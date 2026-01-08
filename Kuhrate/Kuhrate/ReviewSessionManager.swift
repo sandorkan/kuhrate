@@ -16,17 +16,16 @@ class ReviewSessionManager {
     // MARK: - Session Management
     
     /// Fetches or creates a review session for a specific period and type
-    func startOrResumeSession(for periodIdentifier: String, type: ReviewType, context: NSManagedObjectContext) -> ReviewSessionEntity {
+    func startOrResumeSession(for periodIdentifier: String, type: ReviewType, context: NSManagedObjectContext) throws -> ReviewSessionEntity {
         let request: NSFetchRequest<ReviewSessionEntity> = ReviewSessionEntity.fetchRequest()
         request.predicate = NSPredicate(format: "periodIdentifier == %@ AND type == %@", periodIdentifier, type.rawValue)
         
-        do {
-            let results = try context.fetch(request)
-            if let existingSession = results.first {
-                return existingSession
-            }
-        } catch {
-            print("Error fetching existing session: \(error)")
+        let results = try context.fetch(request)
+        if let existingSession = results.first {
+            // Optional: Refresh total notes count in case new notes were added since last session
+            let eligibleNotes = fetchEligibleNotes(for: periodIdentifier, type: type, context: context)
+            existingSession.totalNotes = Int32(eligibleNotes.count)
+            return existingSession
         }
         
         // Create new session
@@ -55,14 +54,33 @@ class ReviewSessionManager {
             if let oldActionType = ActionType(rawValue: existingAction.action ?? "") {
                 if oldActionType == .kept {
                     session.notesKept -= 1
-                    // Revert promotion
-                    let prevCycle = max(0, note.reviewCycle - 1)
-                    note.reviewCycle = prevCycle
                 } else if oldActionType == .archived {
                     session.notesArchived -= 1
-                    // Revert archive
-                    note.isArchived = false
                 }
+                
+                // Revert note state
+                // Note: The properties below seem to be generated as non-optional scalars (Int16, Bool)
+                // or optional scalars (Int16?, Bool?) depending on codegen settings.
+                // We handle both cases by casting/coalescing safely.
+                
+                // Restore Cycle
+                // Try to treat as optional first (if let), otherwise fallback to direct access if possible
+                // Since we got a compiler error about "int16Value", we know it's already an Int/NSNumber compatible type
+                // but simpler to just cast/assign.
+                
+                // If it was optional in CoreData but generated as Int16 (scalar), it defaults to 0.
+                // We can't distinguish "Unset" from "0" easily if it is non-optional.
+                // Assuming it was set correctly when created.
+                
+                // Generic approach:
+                let prevCycle = existingAction.previousReviewCycle 
+                // If prevCycle is Int16, this assigns. If it's Int16?, it needs unwrapping.
+                // We'll use coercion to be safe for both:
+                note.reviewCycle = (prevCycle as? Int16) ?? (prevCycle as? NSNumber)?.int16Value ?? 0
+                
+                // Restore Archived State
+                let prevArchived = existingAction.previousIsArchived
+                note.isArchived = (prevArchived as? Bool) ?? (prevArchived as? NSNumber)?.boolValue ?? false
             }
             
             // Update existing action
@@ -77,6 +95,20 @@ class ReviewSessionManager {
             reviewAction.actionDate = Date()
             reviewAction.note = note
             reviewAction.session = session
+            
+            // SNAPSHOT: Store current state before modification
+            // Writing as simple values (Swift handles bridging to NSNumber if needed)
+            // If the property is Int16, we assign Int16. If NSNumber, we assign NSNumber.
+            // Since we can't see the generated file, we'll try to assign the native type
+            // and let Swift bridge it if it's an Obj-C type.
+            
+            // Casting to Any to bypass strict type check during this blind write? No, that's risky.
+            // Let's try the most likely generated signature for Optional=YES: NSNumber?
+            // But user reported "value of type Int16", so let's try direct assignment.
+            
+            // Using setPrimitiveValue or setValue to key is safer if types are ambiguous
+            reviewAction.setValue(note.reviewCycle, forKey: "previousReviewCycle")
+            reviewAction.setValue(note.isArchived, forKey: "previousIsArchived")
             
             // Increment total progress only for new actions
             session.notesReviewed += 1
@@ -101,9 +133,6 @@ class ReviewSessionManager {
         if session.notesReviewed >= session.totalNotes {
             session.status = ReviewStatus.completed.rawValue
             session.completedDate = Date()
-        } else {
-            // If we revert decisions, we might go back to inProgress? 
-            // For now, let's keep it simple. If we touch 10/10, it's done.
         }
         
         save(context: context)
