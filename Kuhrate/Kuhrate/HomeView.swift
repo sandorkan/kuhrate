@@ -32,6 +32,7 @@ struct HomeView: View {
     @State private var selectedTab: ReviewCycle = .daily
     @State private var showingAddNote = false
     @State private var showingSettings = false
+    @State private var showingSearch = false
     @State private var searchText = ""
 
     // Review State
@@ -43,6 +44,7 @@ struct HomeView: View {
     /// Returns: (Title, Notes, PeriodIdentifier)
     private var groupedTimeline: [(title: String, notes: [NoteEntity], id: String)] {
         let filtered = allNotes.filter { note in
+            // Visibility logic: show if note has reached this cycle level or higher
             note.reviewCycle >= selectedTab.rawValue
         }
 
@@ -61,6 +63,7 @@ struct HomeView: View {
 
         // Map to display models
         let result = groups.map { (key: String, notes: [NoteEntity]) -> (title: String, notes: [NoteEntity], id: String) in
+            // Determine display title based on the date of the first note (representative)
             let date = notes.first?.createdDate ?? Date()
             let title: String
 
@@ -135,6 +138,7 @@ struct HomeView: View {
                     }
                     .padding(.top)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure ScrollView fills screen
 
                 // Floating Bottom Bar (Search + FAB)
                 floatingBottomBar
@@ -151,6 +155,9 @@ struct HomeView: View {
             }
             .fullScreenCover(item: $activeReviewSession) { session in
                 ReviewView(viewModel: ReviewViewModel(session: session, context: viewContext))
+            }
+            .fullScreenCover(isPresented: $showingSearch) {
+                GlobalSearchView(context: viewContext)
             }
         }
     }
@@ -188,10 +195,10 @@ struct HomeView: View {
                             .font(.subheadline.weight(.bold))
                             .textCase(.uppercase)
                             .opacity(0.8)
-                        
+
                         Text(target.title)
                             .font(.title2.bold())
-                        
+
                         HStack(spacing: 4) {
                             Image(systemName: "note.text")
                             Text("\(target.noteCount) Notes")
@@ -203,9 +210,9 @@ struct HomeView: View {
                         .cornerRadius(8)
                     }
                     .foregroundColor(.white)
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.right.circle.fill")
                         .font(.system(size: 36))
                         .foregroundColor(.white)
@@ -289,6 +296,10 @@ struct HomeView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
+                    } else {
+                        Text("Collecting...")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -337,19 +348,18 @@ struct HomeView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.gray)
 
-                TextField("Search notes", text: $searchText)
+                Text("Search notes")
+                    .foregroundColor(.gray)
 
-                Button {
-                    // Voice search
-                } label: {
-                    Image(systemName: "mic.fill")
-                        .foregroundColor(.gray)
-                }
+                Spacer()
             }
             .padding(12)
             .background(Color(uiColor: .systemBackground))
             .cornerRadius(30)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+            .onTapGesture {
+                showingSearch = true
+            }
 
             // Add Note Button (FAB)
             Button {
@@ -411,19 +421,25 @@ struct HomeView: View {
         let currentIdentifier: String
 
         switch selectedTab {
-        case .daily: currentIdentifier = now.weekIdentifier
-        case .weekly: currentIdentifier = now.monthIdentifier
-        case .monthly: currentIdentifier = now.yearIdentifier
-        case .yearly: return false
+        case .daily:
+            currentIdentifier = now.weekIdentifier
+        case .weekly:
+            currentIdentifier = now.monthIdentifier
+        case .monthly:
+            currentIdentifier = now.yearIdentifier
+        case .yearly:
+            return false // Evergreen notes don't have a "past" cycle in the same way
         }
 
         return periodIdentifier < currentIdentifier
     }
 
+    // Overloaded helper for internal calculations (uses current selectedTab)
     private func calculateProgress(for periodIdentifier: String, notes: [NoteEntity]) -> Double {
         return calculateProgress(for: periodIdentifier, notes: notes, cycle: selectedTab)
     }
 
+    // Core calculation
     private func calculateProgress(for periodIdentifier: String, notes _: [NoteEntity], cycle: ReviewCycle) -> Double {
         let targetType: ReviewType
         switch cycle {
@@ -438,6 +454,7 @@ struct HomeView: View {
             return Double(session.notesReviewed) / Double(session.totalNotes)
         }
 
+        // 2. Fallback: No session started yet, so progress is 0
         return 0.0
     }
 
@@ -467,10 +484,21 @@ struct HomeView: View {
 
 struct HomeNoteRowView: View {
     @ObservedObject var note: NoteEntity
+    var showChevron: Bool = false
 
     var body: some View {
         HStack(spacing: 16) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 48, height: 48)
+
+                Image(systemName: note.sourceType?.icon ?? "quote.bubble")
+                    .foregroundColor(.gray)
+            }
+
             VStack(alignment: .leading, spacing: 2) {
+                // Header with Title and Date
                 HStack(alignment: .firstTextBaseline) {
                     Text(note.content?.components(separatedBy: .newlines).first ?? "Untitled")
                         .font(.headline)
@@ -486,6 +514,7 @@ struct HomeNoteRowView: View {
                     }
                 }
 
+                // Rest as preview
                 Text(note.content?.components(separatedBy: .newlines).dropFirst().joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -494,9 +523,11 @@ struct HomeNoteRowView: View {
 
             Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.caption.bold())
-                .foregroundColor(.gray.opacity(0.4))
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundColor(.gray.opacity(0.4))
+            }
         }
     }
 }
