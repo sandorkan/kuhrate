@@ -68,4 +68,7 @@ iOSInjectionProject/
 # macOS
 .DS_Store
 
+# Design Assets (source files, not needed for build)
+media/
+
 # End of https://www.toptal.com/developers/gitignore/api/swift,xcode
