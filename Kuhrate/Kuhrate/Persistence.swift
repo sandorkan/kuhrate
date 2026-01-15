@@ -6,6 +6,7 @@
 //
 
 import CoreData
+import Foundation
 
 struct PersistenceController {
     static let shared = PersistenceController()
@@ -81,6 +82,8 @@ struct PersistenceController {
         PersistenceController.seedCategoriesIfNeeded(context: container.viewContext)
         // Seed predefined source types on first launch
         PersistenceController.seedSourceTypesIfNeeded(context: container.viewContext)
+        // Seed onboarding content on first launch
+        PersistenceController.seedOnboardingNotes(context: container.viewContext)
     }
 
     // MARK: - Category Seeding
@@ -93,8 +96,6 @@ struct PersistenceController {
         do {
             let count = try context.count(for: fetchRequest)
             if count > 0 {
-                // Categories already exist, skip seeding
-                print("Categories already exist, skip seeding")
                 return
             }
         } catch {
@@ -146,8 +147,6 @@ struct PersistenceController {
         do {
             let count = try context.count(for: fetchRequest)
             if count > 0 {
-                // Source types already exist, skip seeding
-                print("Source types already exist, skip seeding")
                 return
             }
         } catch {
@@ -184,6 +183,57 @@ struct PersistenceController {
         } catch {
             let nsError = error as NSError
             print("❌ Error seeding source types: \(nsError), \(nsError.userInfo)")
+        }
+    }
+    
+    // MARK: - Onboarding Seeding
+    
+    /// Seeds tutorial notes on first launch
+    static func seedOnboardingNotes(context: NSManagedObjectContext) {
+        let hasSeededKey = "hasSeededOnboarding"
+        if UserDefaults.standard.bool(forKey: hasSeededKey) {
+            return
+        }
+        
+        // Date: 8 days ago (Last Week) so they are ready for review immediately
+        let pastDate = Calendar.current.date(byAdding: .day, value: -8, to: Date()) ?? Date()
+        
+        let notesData = [
+            (
+                "Welcome to Kuhrate! 👋",
+                "This is your Inbox. Capture thoughts, quotes, and ideas here freely. Don't worry about organization yet."
+            ),
+            (
+                "The Review System 🔄",
+                "Every week, you'll review your notes. You decide: **Keep** what resonates, **Archive** the noise. This note is ready for review now!"
+            ),
+            (
+                "Long Term Wisdom 🧠",
+                "Notes you Keep move to Monthly, then Yearly cycles. Kuhrate helps you build a library of your best thinking."
+            )
+        ]
+        
+        // Iterate with offset to ensure correct sorting (Reverse order of creation = Display order)
+        for (index, data) in notesData.enumerated() {
+            let note = NoteEntity(context: context)
+            note.id = UUID()
+            note.content = "\(data.0)\n\n\(data.1)"
+            
+            // To make Welcome (#0) appear at the TOP (newest), it needs the LATEST date.
+            // Wisdom (#2) needs the EARLIEST date.
+            let minuteOffset = -(index * 5) // Welcome: 0, System: -5, Wisdom: -10
+            note.createdDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: pastDate)
+            
+            note.reviewCycle = 0
+            note.isArchived = false
+        }
+        
+        do {
+            try context.save()
+            UserDefaults.standard.set(true, forKey: hasSeededKey)
+            print("✅ Seeded onboarding notes with correct ordering")
+        } catch {
+            print("❌ Error seeding onboarding notes: \(error)")
         }
     }
 }

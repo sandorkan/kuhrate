@@ -312,3 +312,23 @@ struct ReviewView: View {
         return formatter
     }()
 }
+
+// MARK: - Wrapper View (Ensures ViewModel persists)
+
+/// Wrapper that uses @StateObject to prevent ViewModel recreation during re-renders
+struct ReviewViewContainer: View {
+    let session: ReviewSessionEntity
+    let context: NSManagedObjectContext
+
+    @StateObject private var viewModel: ReviewViewModel
+
+    init(session: ReviewSessionEntity, context: NSManagedObjectContext) {
+        self.session = session
+        self.context = context
+        _viewModel = StateObject(wrappedValue: ReviewViewModel(session: session, context: context))
+    }
+
+    var body: some View {
+        ReviewView(viewModel: viewModel)
+    }
+}

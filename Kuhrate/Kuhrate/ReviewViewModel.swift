@@ -23,6 +23,7 @@ class ReviewViewModel: ObservableObject {
     private var allNotes: [NoteEntity] = []
     private var currentIndex: Int = 0
     private var pendingNavigation: DispatchWorkItem?
+    private var hasInitializedPosition = false
 
     // MARK: - Computed Properties
 
@@ -66,18 +67,29 @@ class ReviewViewModel: ObservableObject {
 
         if allNotes.isEmpty {
             isFinished = true
-        } else {
-            // Start at the first unreviewed note, or 0 if all done/none done
-            if let firstUnreviewedIndex = allNotes.firstIndex(where: { note in
-                let actions = note.reviewActions?.allObjects as? [ReviewActionEntity] ?? []
-                return !actions.contains(where: { $0.session?.id == session.id })
-            }) {
-                currentIndex = firstUnreviewedIndex
-            } else {
-                currentIndex = 0
-            }
-            currentNote = allNotes[currentIndex]
+            return
         }
+
+        // If position was already initialized and is still valid, preserve it
+        if hasInitializedPosition && currentIndex >= 0 && currentIndex < allNotes.count {
+            currentNote = allNotes[currentIndex]
+            return
+        }
+
+        // First time loading - find the starting position
+        hasInitializedPosition = true
+
+        // Start at the first unreviewed note
+        if let firstUnreviewedIndex = allNotes.firstIndex(where: { note in
+            let actions = note.reviewActions?.allObjects as? [ReviewActionEntity] ?? []
+            return !actions.contains(where: { $0.session?.id == session.id })
+        }) {
+            currentIndex = firstUnreviewedIndex
+        } else {
+            // All notes have been reviewed - stay at the last note
+            currentIndex = allNotes.count - 1
+        }
+        currentNote = allNotes[currentIndex]
     }
 
     // MARK: - Actions
@@ -122,6 +134,10 @@ class ReviewViewModel: ObservableObject {
             session: session,
             context: context
         )
+
+        // Force UI update - CoreData changes don't automatically trigger SwiftUI re-renders
+        // because @Published only fires when the reference changes, not when object properties change
+        objectWillChange.send()
 
         // Auto-advance if this was a new decision on the current card
         if canGoForward {

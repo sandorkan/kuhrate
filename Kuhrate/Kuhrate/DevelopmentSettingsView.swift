@@ -33,6 +33,12 @@ struct DevelopmentSettingsView: View {
                     } label: {
                         Label("Delete All Notes", systemImage: "trash")
                     }
+                    
+                    Button(role: .destructive) {
+                        resetOnboarding()
+                    } label: {
+                        Label("Reset Onboarding & Notes", systemImage: "sparkles")
+                    }
                 }
                 
                 Section("Info") {
@@ -123,6 +129,17 @@ struct DevelopmentSettingsView: View {
         
         save()
         dismiss()
+    }
+    
+    private func resetOnboarding() {
+        // 1. Clear onboarding flag
+        UserDefaults.standard.set(false, forKey: "hasSeenOnboarding")
+        UserDefaults.standard.set(false, forKey: "hasSeededOnboarding")
+        // 2. Wipe everything to allow clean re-seed
+        deleteAllNotes()
+
+        // 3. Restart app required to show onboarding again
+        // User will need to close and reopen the app
     }
     
     /// Executes a batch delete and merges the changes into the context to update UI
