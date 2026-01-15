@@ -154,7 +154,7 @@ struct HomeView: View {
                     .environment(\.managedObjectContext, viewContext)
             }
             .fullScreenCover(item: $activeReviewSession) { session in
-                ReviewView(viewModel: ReviewViewModel(session: session, context: viewContext))
+                ReviewViewContainer(session: session, context: viewContext)
             }
             .fullScreenCover(isPresented: $showingSearch) {
                 GlobalSearchView(context: viewContext)
@@ -270,11 +270,58 @@ struct HomeView: View {
 
     private var timelineContent: some View {
         VStack(alignment: .leading, spacing: 32) {
-            ForEach(groupedTimeline, id: \.id) { group in
-                timelineSection(title: group.title, notes: group.notes, periodIdentifier: group.id)
+            if groupedTimeline.isEmpty {
+                emptyStateView
+            } else {
+                ForEach(groupedTimeline, id: \.id) { group in
+                    timelineSection(title: group.title, notes: group.notes, periodIdentifier: group.id)
+                }
             }
         }
         .padding(.horizontal)
+    }
+
+    private var emptyStateView: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Image("kuhrate-waiting-sm")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 180)
+
+            Text(emptyStateTitle)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.primary)
+
+            Text(emptyStateSubtitle)
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
+    }
+
+    private var emptyStateTitle: String {
+        switch selectedTab {
+        case .daily: return "Start Capturing Ideas"
+        case .weekly: return "No Monthly Notes Yet"
+        case .monthly: return "No Yearly Notes Yet"
+        case .yearly: return "No Evergreen Notes Yet"
+        }
+    }
+
+    private var emptyStateSubtitle: String {
+        switch selectedTab {
+        case .daily: return "Tap the + button to create your first note"
+        case .weekly: return "Keep notes during your weekly reviews to see them here"
+        case .monthly: return "Keep notes during your monthly reviews to see them here"
+        case .yearly: return "Your most valuable insights will appear here after yearly reviews"
+        }
     }
 
     private func timelineSection(title: String, notes: [NoteEntity], periodIdentifier: String) -> some View {
