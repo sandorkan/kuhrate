@@ -136,6 +136,9 @@ class ReviewSessionManager {
         }
         
         save(context: context)
+        
+        // Update app icon badge whenever a decision is recorded
+        NotificationManager.shared.updateBadge(context: context)
     }
     
     // MARK: - Note Fetching

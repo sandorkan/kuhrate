@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct OnboardingView: View {
     @Binding var showOnboarding: Bool
@@ -95,6 +96,19 @@ struct OnboardingView: View {
 
     private func completeOnboarding() {
         UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
+
+        // Request notification permission
+        NotificationManager.shared.requestPermission { granted in
+            if granted {
+                print("✅ Notifications authorized")
+                // Schedule notifications after permission granted
+                let context = PersistenceController.shared.container.viewContext
+                NotificationManager.shared.scheduleAllNotifications(context: context)
+            } else {
+                print("⚠️ Notifications denied")
+            }
+        }
+
         withAnimation {
             showOnboarding = false
         }

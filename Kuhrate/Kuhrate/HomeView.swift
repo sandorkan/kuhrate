@@ -150,7 +150,7 @@ struct HomeView: View {
                 }
             }
             .sheet(isPresented: $showingSettings) {
-                DevelopmentSettingsView()
+                SettingsView()
                     .environment(\.managedObjectContext, viewContext)
             }
             .fullScreenCover(item: $activeReviewSession) { session in
